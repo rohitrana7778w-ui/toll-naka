@@ -1,16 +1,7 @@
-flask
-flask-cors
-opencv-python
-pytesseract
-numpy
-Pillow
-
-# TOLLNET — Python Dependencies
-# Install with: pip install -r requirements.txt
-
 flask>=2.3.0
 flask-cors>=4.0.0
 opencv-python>=4.8.0
 pytesseract>=0.3.10
 numpy>=1.24.0
 Pillow>=10.0.0
+pdf2image>=1.16.0

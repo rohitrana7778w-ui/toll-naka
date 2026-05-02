@@ -1,192 +1,249 @@
 """
 TOLLNET — Smart Toll Collection System
-Backend: app.py (Flask API)
+Backend: app.py (Flask API) — v2 with File Upload + Receipt
 
-Endpoint: POST /process-image
-  - Receives an image from the frontend
-  - Passes it to the OCR module to extract a Vehicle ID
-  - Looks up the Vehicle ID in database.json
-  - Deducts toll if vehicle found and has sufficient balance
-  - Returns a JSON response
+Endpoints:
+  GET  /                  → health check
+  POST /process-image     → camera capture (original feature)
+  POST /upload-plate      → file upload (image or PDF) — NEW
 """
 
 import os
 import json
+import uuid
 import numpy as np
 import cv2
+from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# Import our custom OCR module
 from ocr import extract_vehicle_id
 
 # ─── App Setup ──────────────────────────────────────────────────
 app = Flask(__name__)
-
-# Enable CORS so the browser frontend (served from a different origin)
-# can send requests to this Flask server
 CORS(app)
 
-# ─── Paths ──────────────────────────────────────────────────────
-BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
-DB_PATH     = os.path.join(BASE_DIR, "database.json")
-UPLOAD_DIR  = os.path.join(BASE_DIR, "uploads")
-
-# Create upload folder if it doesn't exist
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+DB_PATH    = os.path.join(BASE_DIR, "database.json")
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+# ─── Toll Rate Table (by vehicle_type from DB) ──────────────────
+TOLL_RATES = {
+    "car":   100,
+    "truck": 150,
+    "bus":   150,
+    "bike":  50,
+}
+DEFAULT_TOLL = 100  # fallback for unknown types
 
-# ─── Helper: Load Database ──────────────────────────────────────
+# ─── DB Helpers ─────────────────────────────────────────────────
 def load_database():
-    """Read the vehicle database from disk and return as a list."""
     with open(DB_PATH, "r") as f:
         return json.load(f)
 
-
-# ─── Helper: Save Database ──────────────────────────────────────
 def save_database(data):
-    """Persist the updated vehicle database back to disk."""
     with open(DB_PATH, "w") as f:
         json.dump(data, f, indent=2)
+
+# ─── Receipt Generator ──────────────────────────────────────────
+def generate_receipt_id():
+    """Returns a short unique receipt ID like TN-20240512-A3F7."""
+    date_part = datetime.now().strftime("%Y%m%d")
+    unique    = uuid.uuid4().hex[:4].upper()
+    return f"TN-{date_part}-{unique}"
+
+# ─── PDF → Image converter ──────────────────────────────────────
+def pdf_to_image(pdf_bytes):
+    """
+    Convert the first page of a PDF (bytes) to an OpenCV BGR image.
+    Requires: pip install pdf2image + poppler installed on system.
+    """
+    try:
+        from pdf2image import convert_from_bytes
+        pages = convert_from_bytes(pdf_bytes, dpi=200)
+        if not pages:
+            return None
+        pil_img = pages[0]
+        img_np  = np.array(pil_img.convert("RGB"))
+        img_cv  = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
+        return img_cv
+    except ImportError:
+        raise RuntimeError(
+            "pdf2image is not installed. Run: pip install pdf2image\n"
+            "Also install poppler: brew install poppler (macOS) "
+            "or sudo apt install poppler-utils (Linux)"
+        )
+
+# ─── Core Processing Logic (shared by both routes) ──────────────
+def process_vehicle_image(img_cv):
+    """
+    Given an OpenCV image:
+    1. Run OCR → extract vehicle number
+    2. Match in DB
+    3. Deduct toll based on vehicle_type
+    4. Generate receipt
+    5. Return (response_dict, http_status_code)
+    """
+
+    # Step 1: OCR
+    vehicle_number = extract_vehicle_id(img_cv)
+    if not vehicle_number:
+        return {
+            "status":            "failed",
+            "message":           "Could not read a vehicle number from the image. "
+                                 "Ensure the number plate is clearly visible and well-lit.",
+            "vehicle_number":    None,
+            "owner_name":        None,
+            "vehicle_type":      None,
+            "toll_amount":       None,
+            "remaining_balance": None,
+            "receipt_id":        None,
+            "date_time":         None,
+        }, 200
+
+    # Step 2: Load DB & match
+    try:
+        db = load_database()
+    except Exception as e:
+        return {"status": "failed", "message": f"Database error: {e}"}, 500
+
+    vehicle = None
+    v_index = None
+    for i, v in enumerate(db):
+        if v["vehicle_number"].strip().upper() == vehicle_number.upper():
+            vehicle = v
+            v_index = i
+            break
+
+    # Step 3: Not found
+    if vehicle is None:
+        return {
+            "status":            "not_found",
+            "message":           f"Vehicle '{vehicle_number}' is not registered in the system.",
+            "vehicle_number":    vehicle_number,
+            "owner_name":        None,
+            "vehicle_type":      None,
+            "toll_amount":       None,
+            "remaining_balance": None,
+            "receipt_id":        None,
+            "date_time":         None,
+        }, 200
+
+    # Step 4: Toll rate from vehicle_type in DB
+    v_type   = vehicle.get("vehicle_type", "car").lower()
+    toll_amt = TOLL_RATES.get(v_type, DEFAULT_TOLL)
+    balance  = vehicle["balance"]
+
+    # Step 5: Insufficient balance
+    if balance < toll_amt:
+        return {
+            "status":            "insufficient_balance",
+            "message":           (f"Insufficient balance for {vehicle['owner_name']}. "
+                                  f"Available: ₹{balance}, Required: ₹{toll_amt}. "
+                                  f"Please recharge your FASTag."),
+            "vehicle_number":    vehicle["vehicle_number"],
+            "owner_name":        vehicle["owner_name"],
+            "vehicle_type":      v_type.capitalize(),
+            "toll_amount":       toll_amt,
+            "remaining_balance": balance,
+            "receipt_id":        None,
+            "date_time":         None,
+        }, 200
+
+    # Step 6: Deduct & save
+    new_balance = balance - toll_amt
+    db[v_index]["balance"] = new_balance
+    try:
+        save_database(db)
+    except Exception as e:
+        return {"status": "failed", "message": f"DB write error: {e}"}, 500
+
+    # Step 7: Receipt
+    receipt_id = generate_receipt_id()
+    date_time  = datetime.now().strftime("%d %b %Y, %I:%M %p")
+
+    return {
+        "status":            "success",
+        "message":           f"Toll of ₹{toll_amt} deducted successfully. Safe journey!",
+        "vehicle_number":    vehicle["vehicle_number"],
+        "owner_name":        vehicle["owner_name"],
+        "vehicle_type":      v_type.capitalize(),
+        "toll_amount":       toll_amt,
+        "remaining_balance": new_balance,
+        "receipt_id":        receipt_id,
+        "date_time":         date_time,
+    }, 200
 
 
 # ─── Route: Health Check ────────────────────────────────────────
 @app.route("/", methods=["GET"])
 def health_check():
-    """Simple health-check endpoint to verify the server is running."""
     return jsonify({"status": "ok", "message": "TOLLNET backend is running."})
 
 
-# ─── Route: Process Image ────────────────────────────────────────
+# ─── Route: Camera Capture (original, kept intact) ──────────────
 @app.route("/process-image", methods=["POST"])
 def process_image():
-    """
-    Main endpoint.
-    Expects a multipart/form-data POST with an 'image' file field.
-    Returns JSON with transaction details.
-    """
-
-    # ── Step 1: Validate request ──────────────────────────────
     if "image" not in request.files:
-        return jsonify({
-            "status":    "failed",
-            "message":   "No image file received. Send a file with key 'image'.",
-            "vehicle_id": None,
-            "owner":      None,
-            "toll_deducted": None,
-            "remaining_balance": None
-        }), 400
-
-    image_file = request.files["image"]
-
-    # ── Step 2: Read image bytes → OpenCV format ──────────────
+        return jsonify({"status": "failed", "message": "No image received."}), 400
     try:
-        file_bytes = np.frombuffer(image_file.read(), dtype=np.uint8)
+        file_bytes = np.frombuffer(request.files["image"].read(), dtype=np.uint8)
         img_cv = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-
         if img_cv is None:
-            raise ValueError("OpenCV could not decode the image.")
+            raise ValueError("Cannot decode image.")
     except Exception as e:
-        return jsonify({
-            "status":  "failed",
-            "message": f"Image processing error: {str(e)}",
-            "vehicle_id": None, "owner": None,
-            "toll_deducted": None, "remaining_balance": None
-        }), 422
+        return jsonify({"status": "failed", "message": str(e)}), 422
+    result, code = process_vehicle_image(img_cv)
+    return jsonify(result), code
 
-    # ── Step 3: Run OCR to extract Vehicle ID ─────────────────
-    vehicle_id = extract_vehicle_id(img_cv)
 
-    if not vehicle_id:
-        return jsonify({
-            "status":    "failed",
-            "message":   "Could not read a Vehicle ID from the image. "
-                         "Ensure the ID card is clearly visible and well-lit.",
-            "vehicle_id": None,
-            "owner":      None,
-            "toll_deducted": None,
-            "remaining_balance": None
-        }), 200
+# ─── Route: File Upload — NEW ────────────────────────────────────
+@app.route("/upload-plate", methods=["POST"])
+def upload_plate():
+    """
+    Accepts an uploaded image (JPG/PNG/BMP) or PDF of a number plate.
+    Extracts vehicle number via OCR, matches DB, deducts toll, returns receipt.
+    """
+    if "file" not in request.files:
+        return jsonify({"status": "failed", "message": "No file uploaded. Use key 'file'."}), 400
 
-    # ── Step 4: Look up vehicle in database ───────────────────
-    try:
-        db = load_database()
-    except Exception as e:
-        return jsonify({
-            "status":  "failed",
-            "message": f"Database read error: {str(e)}",
-            "vehicle_id": vehicle_id, "owner": None,
-            "toll_deducted": None, "remaining_balance": None
-        }), 500
+    uploaded  = request.files["file"]
+    filename  = (uploaded.filename or "").lower()
+    raw_bytes = uploaded.read()
 
-    # Search for vehicle (case-insensitive match)
-    vehicle = None
-    vehicle_index = None
-    for i, v in enumerate(db):
-        if v["vehicle_id"].strip().upper() == vehicle_id.upper():
-            vehicle = v
-            vehicle_index = i
-            break
+    if not raw_bytes:
+        return jsonify({"status": "failed", "message": "Uploaded file is empty."}), 400
 
-    # ── Step 5: Vehicle not registered ───────────────────────
-    if vehicle is None:
-        return jsonify({
-            "status":    "not_found",
-            "message":   f"Vehicle ID '{vehicle_id}' is not registered in the system.",
-            "vehicle_id": vehicle_id,
-            "owner":      None,
-            "toll_deducted": None,
-            "remaining_balance": None
-        }), 200
+    img_cv = None
 
-    # ── Step 6: Check balance ─────────────────────────────────
-    balance   = vehicle["balance"]
-    toll_rate = vehicle["toll_rate"]
+    if filename.endswith(".pdf"):
+        try:
+            img_cv = pdf_to_image(raw_bytes)
+        except RuntimeError as e:
+            return jsonify({"status": "failed", "message": str(e)}), 500
+        if img_cv is None:
+            return jsonify({"status": "failed", "message": "Could not extract page from PDF."}), 422
+    else:
+        file_bytes = np.frombuffer(raw_bytes, dtype=np.uint8)
+        img_cv = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        if img_cv is None:
+            return jsonify({
+                "status":  "failed",
+                "message": "Could not decode the uploaded file. "
+                           "Supported formats: JPG, PNG, BMP, WEBP, PDF."
+            }), 422
 
-    if balance < toll_rate:
-        return jsonify({
-            "status":    "insufficient_balance",
-            "message":   (f"Insufficient balance for {vehicle['owner']}. "
-                          f"Available: ₹{balance}, Required: ₹{toll_rate}. "
-                          f"Please recharge your account."),
-            "vehicle_id":        vehicle["vehicle_id"],
-            "owner":             vehicle["owner"],
-            "toll_deducted":     0,
-            "remaining_balance": balance
-        }), 200
-
-    # ── Step 7: Deduct toll & save ────────────────────────────
-    new_balance = balance - toll_rate
-    db[vehicle_index]["balance"] = new_balance
-
-    try:
-        save_database(db)
-    except Exception as e:
-        return jsonify({
-            "status":  "failed",
-            "message": f"Database write error: {str(e)}",
-            "vehicle_id": vehicle["vehicle_id"], "owner": vehicle["owner"],
-            "toll_deducted": None, "remaining_balance": None
-        }), 500
-
-    # ── Step 8: Return success response ──────────────────────
-    return jsonify({
-        "status":            "success",
-        "message":           (f"Toll of ₹{toll_rate} successfully deducted for "
-                              f"{vehicle['owner']}. Safe journey!"),
-        "vehicle_id":        vehicle["vehicle_id"],
-        "owner":             vehicle["owner"],
-        "toll_deducted":     toll_rate,
-        "remaining_balance": new_balance
-    }), 200
+    result, code = process_vehicle_image(img_cv)
+    return jsonify(result), code
 
 
 # ─── Run ────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print("=" * 50)
-    print("  TOLLNET Backend Starting...")
-    print("  Endpoint: http://127.0.0.1:5000/process-image")
+    print("  TOLLNET Backend v2 Starting...")
+    print("  Camera : POST /process-image")
+    print("  Upload : POST /upload-plate")
+    print("  URL    : http://127.0.0.1:5001")
     print("=" * 50)
-    # debug=True gives useful error messages during development.
-    # Set debug=False for production.
     app.run(host="0.0.0.0", port=5001, debug=True)

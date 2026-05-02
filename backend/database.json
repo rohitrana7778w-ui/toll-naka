@@ -1,38 +1,50 @@
 [
   {
-    "vehicle_id": "ABC123",
-    "owner": "Rahul Sharma",
-    "balance": 350,
-    "toll_rate": 50
+    "vehicle_number": "ABC123",
+    "owner_name": "Rahul Sharma",
+    "vehicle_type": "car",
+    "balance": 400
   },
   {
-    "vehicle_id": "DL4CAF7890",
-    "owner": "Priya Mehta",
-    "balance": 300,
-    "toll_rate": 75
+    "vehicle_number": "DL4CAF7890",
+    "owner_name": "Priya Mehta",
+    "vehicle_type": "bike",
+    "balance": 300
   },
   {
-    "vehicle_id": "MH12AB1234",
-    "owner": "Suresh Kumar",
-    "balance": 120,
-    "toll_rate": 150
+    "vehicle_number": "MH12AB1234",
+    "owner_name": "Suresh Kumar",
+    "vehicle_type": "truck",
+    "balance": 600
   },
   {
-    "vehicle_id": "KA05MG9999",
-    "owner": "Anjali Singh",
-    "balance": 950,
-    "toll_rate": 50
+    "vehicle_number": "KA05MG9999",
+    "owner_name": "Anjali Singh",
+    "vehicle_type": "car",
+    "balance": 1000
   },
   {
-    "vehicle_id": "UP32CX4567",
-    "owner": "Vikram Yadav",
-    "balance": 60,
-    "toll_rate": 75
+    "vehicle_number": "UP32CX4567",
+    "owner_name": "Vikram Yadav",
+    "vehicle_type": "bus",
+    "balance": 60
   },
   {
-    "vehicle_id": "TN09BB2222",
-    "owner": "Lakshmi Nair",
-    "balance": 0,
-    "toll_rate": 50
+    "vehicle_number": "TN09BB2222",
+    "owner_name": "Lakshmi Nair",
+    "vehicle_type": "bike",
+    "balance": 0
+  },
+  {
+    "vehicle_number": "RJ14GB5678",
+    "owner_name": "Deepak Joshi",
+    "vehicle_type": "truck",
+    "balance": 800
+  },
+  {
+    "vehicle_number": "GJ01AA0001",
+    "owner_name": "Meena Patel",
+    "vehicle_type": "bus",
+    "balance": 450
   }
 ]
