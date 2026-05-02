@@ -1,10 +1,11 @@
 /**
- * TOLLNET v2 — Frontend Script
- * Features: Camera scan + File Upload + Receipt display
+ * TOLLNET v3 — Frontend Script
+ * Features: Camera scan + Manual Entry + PDF Receipt download
  */
 
 const BACKEND_CAMERA = "http://127.0.0.1:5001/process-image";
-const BACKEND_UPLOAD = "http://127.0.0.1:5001/upload-plate";
+const BACKEND_MANUAL = "http://127.0.0.1:5001/process-manual";
+const BACKEND_BASE   = "http://127.0.0.1:5001";
 
 // ─── DOM refs ────────────────────────────────────
 const videoFeed       = document.getElementById("videoFeed");
@@ -14,7 +15,6 @@ const capturedSection = document.getElementById("capturedSection");
 const capturedImage   = document.getElementById("capturedImage");
 const btnStart        = document.getElementById("btnStart");
 const btnCapture      = document.getElementById("btnCapture");
-const btnUpload       = document.getElementById("btnUpload");
 const loadingBar      = document.getElementById("loadingBar");
 const loadingFill     = document.getElementById("loadingFill");
 const loadingLabel    = document.getElementById("loadingLabel");
@@ -26,9 +26,8 @@ const statusText      = document.getElementById("statusText");
 const receiptBox      = document.getElementById("receiptBox");
 
 // ─── State ───────────────────────────────────────
-let cameraStream  = null;
-let selectedFile  = null;
-let activeTab     = "camera";
+let cameraStream = null;
+let activeTab    = "camera";
 
 // ════════════════════════════════════════════════
 // TAB SWITCHING
@@ -36,9 +35,9 @@ let activeTab     = "camera";
 function switchTab(tab) {
   activeTab = tab;
   document.getElementById("tabCamera").classList.toggle("active", tab === "camera");
-  document.getElementById("tabUpload").classList.toggle("active", tab === "upload");
+  document.getElementById("tabManual").classList.toggle("active", tab === "manual");
   document.getElementById("cameraTab").style.display = tab === "camera" ? "block" : "none";
-  document.getElementById("uploadTab").style.display = tab === "upload" ? "block" : "none";
+  document.getElementById("manualTab").style.display = tab === "manual" ? "block" : "none";
 }
 
 // ════════════════════════════════════════════════
@@ -73,23 +72,20 @@ async function startCamera() {
 async function captureAndProcess() {
   if (!cameraStream) { alert("Start the camera first."); return; }
 
-  // Draw frame to canvas
   const ctx = captureCanvas.getContext("2d");
   captureCanvas.width  = videoFeed.videoWidth  || 640;
   captureCanvas.height = videoFeed.videoHeight || 480;
   ctx.drawImage(videoFeed, 0, 0, captureCanvas.width, captureCanvas.height);
 
-  // Show preview
   capturedImage.src = captureCanvas.toDataURL("image/png");
   capturedSection.style.display = "block";
 
-  // Convert to Blob and send
   captureCanvas.toBlob(async (blob) => {
     const formData = new FormData();
     formData.append("image", blob, "capture.png");
     setLoading(true);
     btnCapture.disabled = true;
-    const result = await sendToBackend(BACKEND_CAMERA, formData);
+    const result = await sendToBackend(BACKEND_CAMERA, formData, "form");
     setLoading(false);
     btnCapture.disabled = false;
     if (result) renderResult(result);
@@ -97,94 +93,54 @@ async function captureAndProcess() {
 }
 
 // ════════════════════════════════════════════════
-// FILE UPLOAD
+// MANUAL ENTRY
 // ════════════════════════════════════════════════
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (file) setFile(file);
+function onManualInput() {
+  const input   = document.getElementById("manualVehicleInput");
+  const preview = document.getElementById("manualPreview");
+  const btn     = document.getElementById("btnManual");
+  const cleaned = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  preview.textContent = cleaned.length > 0 ? `→ ${cleaned}` : "";
+  btn.disabled = cleaned.length < 3;
 }
 
-function handleDragOver(event) {
-  event.preventDefault();
-  document.getElementById("dropzone").classList.add("drag-over");
-}
-
-function handleDragLeave(event) {
-  document.getElementById("dropzone").classList.remove("drag-over");
-}
-
-function handleDrop(event) {
-  event.preventDefault();
-  document.getElementById("dropzone").classList.remove("drag-over");
-  const file = event.dataTransfer.files[0];
-  if (file) setFile(file);
-}
-
-function setFile(file) {
-  // Validate type
-  const allowed = ["image/jpeg","image/png","image/bmp","image/webp","application/pdf"];
-  if (!allowed.includes(file.type) && !file.name.toLowerCase().endsWith(".pdf")) {
-    alert("Unsupported file type. Please upload JPG, PNG, BMP, WEBP, or PDF.");
-    return;
-  }
-  // Validate size (10 MB)
-  if (file.size > 10 * 1024 * 1024) {
-    alert("File is too large. Maximum size is 10 MB.");
-    return;
-  }
-
-  selectedFile = file;
-
-  // Show file info
-  document.getElementById("filePreview").style.display = "block";
-  document.getElementById("fileName").textContent = file.name;
-  document.getElementById("fileSize").textContent = formatBytes(file.size);
-  document.getElementById("fileThumb").textContent = file.type === "application/pdf" ? "📄" : "🖼️";
-  btnUpload.disabled = false;
-
-  // Show image preview (not for PDFs)
-  const imgPrev = document.getElementById("imagePreview");
-  if (file.type.startsWith("image/")) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      imgPrev.src = e.target.result;
-      imgPrev.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-  } else {
-    imgPrev.style.display = "none";
+function onManualKeydown(event) {
+  if (event.key === "Enter") {
+    const btn = document.getElementById("btnManual");
+    if (!btn.disabled) processManual();
   }
 }
 
-function clearFile() {
-  selectedFile = null;
-  document.getElementById("fileInput").value = "";
-  document.getElementById("filePreview").style.display = "none";
-  document.getElementById("imagePreview").style.display = "none";
-  btnUpload.disabled = true;
-}
+async function processManual() {
+  const input = document.getElementById("manualVehicleInput");
+  const raw   = input.value.trim();
+  if (!raw) { showError("Please enter a vehicle number."); return; }
 
-async function uploadAndProcess() {
-  if (!selectedFile) { alert("Please select a file first."); return; }
-
-  const formData = new FormData();
-  formData.append("file", selectedFile, selectedFile.name);
-
+  const btn = document.getElementById("btnManual");
   setLoading(true);
-  btnUpload.disabled = true;
-  const result = await sendToBackend(BACKEND_UPLOAD, formData);
+  btn.disabled = true;
+  const result = await sendToBackend(BACKEND_MANUAL, { vehicle_number: raw }, "json");
   setLoading(false);
-  btnUpload.disabled = false;
-
+  btn.disabled = false;
   if (result) renderResult(result);
 }
 
 // ════════════════════════════════════════════════
 // SHARED: Send to Backend
 // ════════════════════════════════════════════════
-async function sendToBackend(url, formData) {
+async function sendToBackend(url, payload, type) {
   try {
-    const response = await fetch(url, { method: "POST", body: formData });
+    let options;
+    if (type === "json") {
+      options = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      };
+    } else {
+      options = { method: "POST", body: payload };
+    }
+    const response = await fetch(url, options);
     return await response.json();
   } catch (err) {
     const msg = err.message.includes("Failed to fetch")
@@ -202,15 +158,13 @@ function renderResult(data) {
   resultIdle.style.display = "none";
   resultData.style.display = "block";
 
-  // Vehicle info
   document.getElementById("resVehicleNum").textContent  = data.vehicle_number  || "N/A";
   document.getElementById("resOwner").textContent       = data.owner_name      || "—";
   document.getElementById("resVehicleType").textContent = data.vehicle_type    || "—";
-  document.getElementById("resToll").textContent        = data.toll_amount != null ? `₹ ${data.toll_amount}` : "—";
+  document.getElementById("resToll").textContent        = data.toll_amount     != null ? `₹ ${data.toll_amount}` : "—";
   document.getElementById("resBalance").textContent     = data.remaining_balance != null ? `₹ ${data.remaining_balance}` : "—";
   document.getElementById("msgText").textContent        = data.message || "—";
 
-  // Status banner
   statusBanner.className = "status-banner";
   if (data.status === "success") {
     statusBanner.classList.add("success");
@@ -226,7 +180,6 @@ function renderResult(data) {
     statusText.textContent = data.status === "not_found" ? "Vehicle Not Found" : "Transaction Failed";
   }
 
-  // Receipt (only on success)
   if (data.status === "success" && data.receipt_id) {
     receiptBox.style.display = "block";
     document.getElementById("rcptId").textContent      = data.receipt_id;
@@ -236,8 +189,17 @@ function renderResult(data) {
     document.getElementById("rcptType").textContent    = data.vehicle_type;
     document.getElementById("rcptToll").textContent    = `₹ ${data.toll_amount}`;
     document.getElementById("rcptBalance").textContent = `₹ ${data.remaining_balance}`;
+
+    const btnPdf = document.getElementById("btnDownloadPdf");
+    if (data.pdf_url) {
+      btnPdf.href = BACKEND_BASE + data.pdf_url;
+      btnPdf.style.display = "flex";
+    } else {
+      btnPdf.style.display = "none";
+    }
   } else {
     receiptBox.style.display = "none";
+    document.getElementById("btnDownloadPdf").style.display = "none";
   }
 }
 
@@ -257,6 +219,7 @@ function showError(message) {
   document.getElementById("resBalance").textContent     = "—";
   document.getElementById("msgText").textContent        = message;
   receiptBox.style.display = "none";
+  document.getElementById("btnDownloadPdf").style.display = "none";
 }
 
 function setLoading(active) {
@@ -282,13 +245,12 @@ function resetUI() {
   resultIdle.style.display = "block";
   capturedSection.style.display = "none";
   capturedImage.src = "";
-  clearFile();
-}
-
-function formatBytes(bytes) {
-  if (bytes < 1024)       return bytes + " B";
-  if (bytes < 1048576)    return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / 1048576).toFixed(1) + " MB";
+  const input = document.getElementById("manualVehicleInput");
+  if (input) input.value = "";
+  const preview = document.getElementById("manualPreview");
+  if (preview) preview.textContent = "";
+  const btnManual = document.getElementById("btnManual");
+  if (btnManual) btnManual.disabled = true;
 }
 
 window.addEventListener("beforeunload", () => {

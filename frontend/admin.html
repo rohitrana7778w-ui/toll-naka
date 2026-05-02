@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Smart Toll System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0f1a; --surface: #111827; --surface2: #1a2235;
+      --border: #1e2d45; --border-hi: #2a4060;
+      --amber: #f5a623; --amber-dim: #b37518;
+      --teal: #00d4aa; --teal-dim: #008f72;
+      --red: #ff4d4d; --green: #28e07b; --blue: #3b82f6;
+      --text-hi: #e8edf5; --text-mid: #8a9bb5; --text-lo: #3d5070;
+      --font-display: 'Rajdhani', sans-serif; --font-body: 'DM Sans', sans-serif;
+      --radius: 8px; --radius-lg: 14px; --shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body); background: var(--bg); color: var(--text-hi);
+      min-height: 100vh; display: flex; flex-direction: column;
+      background-image: linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .topbar { border-bottom: 1px solid var(--border); background: rgba(11,15,26,0.95);
+      backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+    .topbar-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px;
+      height: 56px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar-logo { display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; letter-spacing: 0.08em; }
+    .logo-icon { color: var(--teal); animation: pulse-teal 3s ease-in-out infinite; }
+    .logo-text strong { color: var(--amber); }
+    .admin-badge { background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3);
+      color: var(--amber); font-family: var(--font-display); font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.15em; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; }
+    .topbar-right { display: flex; align-items: center; gap: 20px; }
+    .topbar-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem;
+      font-weight: 500; letter-spacing: 0.05em; color: var(--text-mid); text-transform: uppercase; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2s step-end infinite; }
+    .btn-logout { background: var(--surface2); border: 1px solid var(--border-hi);
+      color: var(--text-mid); font-family: var(--font-display); font-size: 0.85rem; font-weight: 600;
+      letter-spacing: 0.06em; padding: 7px 16px; border-radius: var(--radius);
+      cursor: pointer; transition: all 0.18s; text-transform: uppercase; }
+    .btn-logout:hover { background: var(--border); color: var(--text-hi); }
+
+    main { flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; padding: 36px 24px; }
+    .dashboard-header { margin-bottom: 28px; }
+    .dashboard-header h2 { font-family: var(--font-display); font-size: 1.9rem;
+      font-weight: 700; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .dashboard-header p { font-size: 0.85rem; color: var(--text-mid); }
+    .last-update { font-size: 0.75rem; color: var(--text-lo); margin-top: 4px; }
+    .last-update span { color: var(--teal); }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 36px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 32px; position: relative;
+      overflow: hidden; box-shadow: var(--shadow); transition: border-color 0.2s; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .stat-card.vehicles::before { background: linear-gradient(90deg, var(--teal), #00a8ff); }
+    .stat-card.revenue::before  { background: linear-gradient(90deg, var(--amber), #ff9900); }
+    .stat-card:hover { border-color: var(--border-hi); }
+    .stat-label { font-family: var(--font-display); font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px; }
+    .stat-card.vehicles .stat-label { color: var(--teal); }
+    .stat-card.revenue  .stat-label { color: var(--amber); }
+    .stat-value { font-family: var(--font-display); font-size: clamp(3rem, 5vw, 4.5rem);
+      font-weight: 700; line-height: 1; margin-bottom: 12px; letter-spacing: 0.02em; transition: color 0.3s; }
+    .stat-card.vehicles .stat-value { color: var(--teal); }
+    .stat-card.revenue  .stat-value { color: var(--amber); }
+    .stat-value.flash { animation: value-flash 0.5s ease; }
+    .stat-meta { font-size: 0.82rem; color: var(--text-mid); display: flex; align-items: center; gap: 6px; }
+    .trend-up { color: var(--green); }
+    .live-indicator { display: flex; align-items: center; gap: 8px; margin-top: 20px;
+      font-size: 0.72rem; color: var(--text-lo); font-family: var(--font-display);
+      letter-spacing: 0.1em; text-transform: uppercase; }
+    .pulse-ring { position: relative; width: 12px; height: 12px; }
+    .pulse-ring::before, .pulse-ring::after { content: ''; position: absolute; inset: 0; border-radius: 50%; }
+    .pulse-ring::before { background: var(--green); animation: pulse-core 2s ease-in-out infinite; }
+    .pulse-ring::after  { background: var(--green); opacity: 0.3; animation: pulse-ring-anim 2s ease-in-out infinite; }
+
+    /* Tabs */
+    .tab-nav { display: flex; gap: 4px; margin-bottom: 20px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 6px; width: fit-content; }
+    .tab-nav button { background: none; border: none; color: var(--text-mid);
+      font-family: var(--font-display); font-size: 0.82rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 18px;
+      border-radius: var(--radius); cursor: pointer; transition: all 0.18s; }
+    .tab-nav button.active { background: var(--teal); color: #0b0f1a; }
+    .tab-nav button:not(.active):hover { color: var(--text-hi); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Table shared */
+    .section-title { font-family: var(--font-display); font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.18em; color: var(--teal); text-transform: uppercase; margin-bottom: 16px; }
+    .log-card { background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+    .log-header { background: var(--surface2); border-bottom: 1px solid var(--border);
+      padding: 12px 20px; font-family: var(--font-display); font-size: 0.68rem;
+      font-weight: 600; letter-spacing: 0.15em; color: var(--text-lo); text-transform: uppercase; }
+    .log-body { max-height: 420px; overflow-y: auto; }
+    .log-body::-webkit-scrollbar { width: 4px; }
+    .log-body::-webkit-scrollbar-track { background: var(--surface); }
+    .log-body::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+    .log-row { padding: 13px 20px; border-bottom: 1px solid var(--border);
+      font-size: 0.84rem; align-items: center; transition: background 0.15s; display: grid; gap: 10px; }
+    .log-row:last-child { border-bottom: none; }
+    .log-row:hover { background: var(--surface2); }
+    .log-row.new-entry { animation: row-flash 1s ease; }
+
+    /* Transaction table columns */
+    .tx-grid { grid-template-columns: 1.2fr 1fr 1.2fr 0.8fr 0.9fr 0.9fr; }
+    .log-header.tx-grid { display: grid; }
+
+    /* Recharge table columns */
+    .rch-grid { grid-template-columns: 1.3fr 1.1fr 0.8fr 1fr 1.1fr 1fr; }
+    .log-header.rch-grid { display: grid; }
+
+    .log-time    { color: var(--text-mid); font-size: 0.78rem; }
+    .log-vehicle { font-family: 'Courier New', monospace; color: var(--amber); font-size: 0.82rem; letter-spacing: 0.06em; }
+    .log-owner   { color: var(--text-hi); }
+    .log-type    { color: var(--text-mid); font-size: 0.8rem; }
+    .log-amount  { color: var(--teal); font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; }
+    .log-receipt { color: var(--text-lo); font-size: 0.75rem; font-family: 'Courier New', monospace; }
+
+    .badge { display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px; font-size: 0.72rem;
+      font-family: var(--font-display); font-weight: 700; letter-spacing: 0.1em; }
+    .badge.pending  { background: rgba(245,166,35,0.15); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+    .badge.approved { background: rgba(40,224,123,0.12); color: var(--green);  border: 1px solid rgba(40,224,123,0.3); }
+    .badge.rejected { background: rgba(255,77,77,0.12);  color: var(--red);    border: 1px solid rgba(255,77,77,0.3); }
+
+    .action-btns { display: flex; gap: 6px; }
+    .btn-accept, .btn-reject {
+      border: none; border-radius: 6px; padding: 5px 12px; font-size: 0.75rem;
+      font-family: var(--font-display); font-weight: 700; letter-spacing: 0.06em;
+      cursor: pointer; transition: all 0.15s; text-transform: uppercase; }
+    .btn-accept { background: rgba(40,224,123,0.15); color: var(--green); border: 1px solid rgba(40,224,123,0.3); }
+    .btn-accept:hover { background: var(--green); color: #0b0f1a; }
+    .btn-reject { background: rgba(255,77,77,0.12); color: var(--red); border: 1px solid rgba(255,77,77,0.3); }
+    .btn-reject:hover { background: var(--red); color: #fff; }
+
+    .log-empty { text-align: center; padding: 48px 20px; color: var(--text-lo); font-size: 0.85rem; }
+
+    .footer { text-align: center; padding: 20px; font-size: 0.73rem; color: var(--text-lo);
+      letter-spacing: 0.05em; border-top: 1px solid var(--border); }
+
+    @keyframes blink          { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    @keyframes pulse-teal     { 0%,100%{text-shadow:0 0 6px rgba(0,212,170,0.5)} 50%{text-shadow:0 0 16px rgba(0,212,170,0.9)} }
+    @keyframes pulse-core     { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.8);opacity:0.8} }
+    @keyframes pulse-ring-anim{ 0%{transform:scale(1);opacity:0.3} 100%{transform:scale(2.5);opacity:0} }
+    @keyframes value-flash    { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    @keyframes row-flash      { 0%{background:rgba(0,212,170,0.1)} 100%{background:transparent} }
+
+    @media (max-width: 700px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .tx-grid, .rch-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .tx-grid > *:nth-child(n+4), .rch-grid > *:nth-child(n+4) { display: none; }
+    }
+
+    /* Register Vehicle form */
+    .reg-form { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .reg-field { display: flex; flex-direction: column; gap: 6px; }
+    .reg-field.full { grid-column: 1/-1; }
+    .reg-field label {
+      font-family: var(--font-display); font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-mid);
+    }
+    .reg-field input, .reg-field select {
+      background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text-hi); font-family: var(--font-body);
+      font-size: 0.9rem; padding: 10px 12px; outline: none; transition: border-color 0.2s;
+    }
+    .reg-field input:focus, .reg-field select:focus {
+      border-color: var(--amber-dim); box-shadow: 0 0 0 3px rgba(245,166,35,0.09);
+    }
+    .reg-field input::placeholder { color: var(--text-lo); }
+    .reg-field select option { background: var(--surface); }
+    .btn-reg-submit {
+      grid-column: 1/-1; background: var(--amber); color: #0b0f1a; border: none;
+      border-radius: 8px; padding: 12px; font-family: var(--font-display); font-size: 0.98rem;
+      font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .btn-reg-submit:hover { background: #ffbe4a; box-shadow: 0 4px 16px rgba(245,166,35,0.3); }
+    .btn-reg-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+    .reg-msg { grid-column: 1/-1; font-size: 0.82rem; padding: 10px 14px;
+      border-radius: 8px; display: none; }
+    .reg-msg.success { background: rgba(40,224,123,0.1); color: #28e07b; border: 1px solid rgba(40,224,123,0.25); }
+    .reg-msg.error   { background: rgba(255,77,77,0.1);  color: #ff6b6b; border: 1px solid rgba(255,77,77,0.25); }
+    .reg-result {
+      grid-column: 1/-1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; display: none;
+    }
+    .reg-result-title { font-family: var(--font-display); font-size: 0.7rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--teal); margin-bottom: 12px; }
+    .reg-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .reg-kv { display: flex; flex-direction: column; gap: 3px; }
+    .reg-k { font-size: 0.7rem; color: var(--text-lo); text-transform: uppercase; letter-spacing: 0.1em; }
+    .reg-v { font-size: 0.9rem; color: var(--text-hi); font-weight: 500; }
+    .reg-v.mono { font-family: 'Courier New', monospace; color: var(--amber); }
+    .reg-v.toll { font-family: 'Courier New', monospace; color: var(--teal); font-size: 0.88rem; }
+
+    /* Vehicle details search */
+    .vd-search-area { padding: 24px; }
+    .vd-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    .vd-row input {
+      flex: 1; background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text-hi); font-family: var(--font-body);
+      font-size: 0.9rem; padding: 10px 12px; outline: none; transition: border-color 0.2s;
+    }
+    .vd-row input:focus { border-color: var(--teal-dim); box-shadow: 0 0 0 3px rgba(0,212,170,0.09); }
+    .vd-row input::placeholder { color: var(--text-lo); }
+    .btn-vd { background: var(--teal); color: #0b0f1a; border: none; border-radius: 8px;
+      padding: 10px 20px; font-family: var(--font-display); font-size: 0.9rem;
+      font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.18s; white-space: nowrap;
+    }
+    .btn-vd:hover { background: #00f0c4; }
+    .vd-detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .vd-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .vd-card.wide { grid-column: 1/-1; }
+    .vd-card-label { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-lo); margin-bottom: 5px; }
+    .vd-card-value { font-size: 0.92rem; color: var(--text-hi); font-weight: 500; }
+    .vd-card-value.mono  { font-family: 'Courier New', monospace; color: var(--amber); }
+    .vd-card-value.green { color: var(--teal); font-family: var(--font-display); font-weight: 700; }
+    .vd-card-value.toll  { font-family: 'Courier New', monospace; color: var(--teal); font-size: 0.84rem; }
+    .vd-err { background: rgba(255,77,77,0.1); color: #ff6b6b; border: 1px solid rgba(255,77,77,0.25);
+      border-radius: 8px; padding: 10px 14px; font-size: 0.84rem; display: none; }
+
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">TOLL<strong>NET</strong></span>
+        <span class="admin-badge">Admin</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-status"><span class="status-dot"></span> Live</div>
+        <button class="btn-logout" onclick="logout()">⏏ Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="dashboard-header">
+      <h2>Real-Time Dashboard</h2>
+      <p>Live monitoring — auto-refreshes every 5 seconds</p>
+      <div class="last-update">Last updated: <span id="lastUpdate">—</span></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card vehicles">
+        <div class="stat-label"><span>🚗</span> Live Vehicle Count</div>
+        <div class="stat-value" id="vehicleCount">—</div>
+        <div class="stat-meta"><span class="trend-up">▲</span> <span id="vehicleMeta">Vehicles processed today</span></div>
+        <div class="live-indicator"><div class="pulse-ring"></div> Updating live</div>
+      </div>
+      <div class="stat-card revenue">
+        <div class="stat-label"><span>₹</span> Total Revenue</div>
+        <div class="stat-value" id="revenueValue">—</div>
+        <div class="stat-meta"><span class="trend-up">▲</span> <span id="revenueMeta">Total collected today</span></div>
+        <div class="live-indicator"><div class="pulse-ring"></div> Updating live</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-nav">
+      <button class="active" onclick="switchTab('live')" id="tabLive">📊 Live Transactions</button>
+      <button onclick="switchTab('history')" id="tabHistory">📋 Transaction History</button>
+      <button onclick="switchTab('recharge')" id="tabRecharge">💳 Recharge Requests <span id="pendingBadge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:0.65rem;margin-left:4px;">0</span></button>
+      <button onclick="switchTab('register')" id="tabRegister">➕ Register Vehicle</button>
+      <button onclick="switchTab('vdetails')" id="tabVdetails">🔍 Vehicle Details</button>
+    </div>
+
+    <!-- REGISTER VEHICLE TAB -->
+    <div class="tab-panel" id="panelRegister">
+      <div class="section-title">Register New Vehicle</div>
+      <div class="log-card">
+        <div class="reg-form">
+          <div class="reg-field full" id="regMsg" style="display:none;"></div>
+          <div class="reg-field">
+            <label for="regName">Full Name</label>
+            <input type="text" id="regName" placeholder="e.g. Rahul Sharma" maxlength="60" autocomplete="off" />
+          </div>
+          <div class="reg-field">
+            <label for="regVehicle">Vehicle Number</label>
+            <input type="text" id="regVehicle" placeholder="e.g. MH12AB1234"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+              maxlength="15" autocomplete="off" />
+          </div>
+          <div class="reg-field">
+            <label for="regAadhaar">Aadhaar Number (12 digits)</label>
+            <input type="text" id="regAadhaar" placeholder="123456789012"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,12)"
+              maxlength="12" autocomplete="off" />
+          </div>
+          <div class="reg-field">
+            <label for="regPhone">Phone Number (10 digits)</label>
+            <input type="text" id="regPhone" placeholder="9876543210"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
+              maxlength="10" autocomplete="off" />
+          </div>
+          <div class="reg-field">
+            <label for="regDob">Date of Birth</label>
+            <input type="date" id="regDob" />
+          </div>
+          <div class="reg-field">
+            <label for="regType">Vehicle Type</label>
+            <select id="regType">
+              <option value="car">Car (₹100)</option>
+              <option value="bike">Bike (₹50)</option>
+              <option value="truck">Truck (₹150)</option>
+              <option value="bus">Bus (₹150)</option>
+            </select>
+          </div>
+          <div class="reg-result" id="regResult">
+            <div class="reg-result-title">✓ Vehicle Registered Successfully</div>
+            <div class="reg-result-grid">
+              <div class="reg-kv"><span class="reg-k">Vehicle Number</span><span class="reg-v mono" id="rr-num">—</span></div>
+              <div class="reg-kv"><span class="reg-k">Owner</span><span class="reg-v" id="rr-name">—</span></div>
+              <div class="reg-kv" style="grid-column:1/-1"><span class="reg-k">Generated Toll ID</span><span class="reg-v toll" id="rr-tollid">—</span></div>
+              <div class="reg-kv"><span class="reg-k">Registered At</span><span class="reg-v" id="rr-regat">—</span></div>
+            </div>
+          </div>
+          <button class="btn-reg-submit" id="btnRegSubmit" onclick="submitRegisterVehicle()">
+            ➕ Register Vehicle &amp; Generate Toll ID
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VEHICLE DETAILS TAB -->
+    <div class="tab-panel" id="panelVdetails">
+      <div class="section-title">Vehicle Details Lookup</div>
+      <div class="log-card">
+        <div class="vd-search-area">
+          <div class="vd-row">
+            <input type="text" id="adminVdInput" placeholder="Enter vehicle number (e.g. MH12AB1234)"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
+              maxlength="15" autocomplete="off"
+              onkeydown="if(event.key==='Enter') adminSearchVehicle()" />
+            <button class="btn-vd" onclick="adminSearchVehicle()">Search</button>
+          </div>
+          <div id="adminVdErr" class="vd-err"></div>
+          <div id="adminVdResult" style="display:none;">
+            <div class="vd-detail-grid">
+              <div class="vd-card"><div class="vd-card-label">Vehicle Number</div><div class="vd-card-value mono" id="avd-num">—</div></div>
+              <div class="vd-card"><div class="vd-card-label">Owner Name</div><div class="vd-card-value" id="avd-name">—</div></div>
+              <div class="vd-card"><div class="vd-card-label">Vehicle Type</div><div class="vd-card-value" id="avd-type">—</div></div>
+              <div class="vd-card"><div class="vd-card-label">Wallet Balance</div><div class="vd-card-value green" id="avd-balance">—</div></div>
+              <div class="vd-card"><div class="vd-card-label">Phone</div><div class="vd-card-value" id="avd-phone">—</div></div>
+              <div class="vd-card"><div class="vd-card-label">Date of Birth</div><div class="vd-card-value" id="avd-dob">—</div></div>
+              <div class="vd-card wide"><div class="vd-card-label">Toll ID</div><div class="vd-card-value toll" id="avd-tollid">—</div></div>
+              <div class="vd-card"><div class="vd-card-label">Aadhaar</div><div class="vd-card-value" id="avd-aadhaar">—</div></div>
+              <div class="vd-card"><div class="vd-card-label">Registered At</div><div class="vd-card-value" id="avd-reg">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE TAB -->
+    <div class="tab-panel active" id="panelLive">
+      <div class="section-title">Recent Transactions (Live)</div>
+      <div class="log-card">
+        <div class="log-header tx-grid">
+          <span>Time</span><span>Vehicle No.</span><span>Owner</span>
+          <span>Type</span><span>Toll</span><span>Receipt</span>
+        </div>
+        <div class="log-body" id="liveLogBody">
+          <div class="log-empty">No transactions yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-panel" id="panelHistory">
+      <div class="section-title">Full Transaction History</div>
+      <div class="log-card">
+        <div class="log-header tx-grid">
+          <span>Time</span><span>Vehicle No.</span><span>Owner</span>
+          <span>Type</span><span>Toll</span><span>Receipt</span>
+        </div>
+        <div class="log-body" id="historyLogBody">
+          <div class="log-empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECHARGE TAB -->
+    <div class="tab-panel" id="panelRecharge">
+      <div class="section-title">Recharge Requests</div>
+      <div class="log-card">
+        <div class="log-header rch-grid">
+          <span>Vehicle No.</span><span>Owner</span><span>Amount</span>
+          <span>Status</span><span>Submitted</span><span>Action</span>
+        </div>
+        <div class="log-body" id="rechargeLogBody">
+          <div class="log-empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">TOLLNET Admin Console &nbsp;·&nbsp; Real-Time Dashboard</footer>
+
+  <script>
+    if (sessionStorage.getItem('toll_role') !== 'admin') {
+      window.location.href = 'index.html';
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    const API = 'http://127.0.0.1:5001';
+    let prevVehicles = -1, prevRevenue = -1;
+
+    function formatRevenue(v) {
+      if (v >= 100000) return '₹' + (v / 100000).toFixed(2) + 'L';
+      if (v >= 1000)   return '₹' + (v / 1000).toFixed(1) + 'K';
+      return '₹' + v;
+    }
+
+    function flashEl(el) {
+      el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+    }
+
+    function switchTab(name) {
+      ['live','history','recharge','register','vdetails'].forEach(t => {
+        document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
+        document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.remove('active');
+      });
+      document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+      document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+
+      if (name === 'history') fetchHistory();
+      if (name === 'recharge') fetchRechargeRequests();
+    }
+
+    // ── Live stats (auto-refresh) ────────────────────────────────
+    async function updateLiveDashboard() {
+      try {
+        const res  = await fetch(API + '/admin/stats');
+        const data = await res.json();
+
+        const vc = data.vehicle_count;
+        const rv = data.total_revenue;
+
+        const vcEl = document.getElementById('vehicleCount');
+        const rvEl = document.getElementById('revenueValue');
+
+        if (vc !== prevVehicles) { vcEl.textContent = vc; flashEl(vcEl); prevVehicles = vc; }
+        if (rv !== prevRevenue)  { rvEl.textContent = formatRevenue(rv); flashEl(rvEl); prevRevenue = rv; }
+
+        document.getElementById('vehicleMeta').textContent = `${vc} vehicle${vc !== 1 ? 's' : ''} processed today`;
+        document.getElementById('revenueMeta').textContent = `${formatRevenue(rv)} collected today`;
+        document.getElementById('lastUpdate').textContent  = new Date().toLocaleTimeString();
+
+        renderLiveLog(data.recent_transactions || []);
+      } catch (e) {
+        document.getElementById('lastUpdate').textContent = 'Connection error';
+      }
+    }
+
+    function renderLiveLog(txs) {
+      const body = document.getElementById('liveLogBody');
+      if (!txs.length) {
+        body.innerHTML = '<div class="log-empty">No transactions yet.</div>';
+        return;
+      }
+      body.innerHTML = txs.map((t, i) => `
+        <div class="log-row tx-grid ${i === 0 ? 'new-entry' : ''}">
+          <span class="log-time">${t.date_time || t.time || '—'}</span>
+          <span class="log-vehicle">${t.vehicle_number || '—'}</span>
+          <span class="log-owner">${t.owner_name || '—'}</span>
+          <span class="log-type">${t.vehicle_type || '—'}</span>
+          <span class="log-amount">₹${t.toll_amount || 0}</span>
+          <span class="log-receipt">${t.receipt_id || '—'}</span>
+        </div>`).join('');
+    }
+
+    // ── Full Transaction History ─────────────────────────────────
+    async function fetchHistory() {
+      const body = document.getElementById('historyLogBody');
+      body.innerHTML = '<div class="log-empty">Loading…</div>';
+      try {
+        const res  = await fetch(API + '/admin/transactions');
+        const data = await res.json();
+        const txs  = data.transactions || [];
+        if (!txs.length) {
+          body.innerHTML = '<div class="log-empty">No transactions recorded yet.</div>';
+          return;
+        }
+        body.innerHTML = txs.map(t => `
+          <div class="log-row tx-grid">
+            <span class="log-time">${t.date_time || '—'}</span>
+            <span class="log-vehicle">${t.vehicle_number || '—'}</span>
+            <span class="log-owner">${t.owner_name || '—'}</span>
+            <span class="log-type">${t.vehicle_type || '—'}</span>
+            <span class="log-amount">₹${t.toll_amount || 0}</span>
+            <span class="log-receipt">${t.receipt_id || '—'}</span>
+          </div>`).join('');
+      } catch (e) {
+        body.innerHTML = '<div class="log-empty">Failed to load history.</div>';
+      }
+    }
+
+    // ── Recharge Requests ────────────────────────────────────────
+    async function fetchRechargeRequests() {
+      const body = document.getElementById('rechargeLogBody');
+      body.innerHTML = '<div class="log-empty">Loading…</div>';
+      try {
+        const res  = await fetch(API + '/admin/recharge-requests');
+        const data = await res.json();
+        const reqs = data.requests || [];
+
+        // Update pending badge
+        const pending = reqs.filter(r => r.status === 'PENDING').length;
+        const badge = document.getElementById('pendingBadge');
+        if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline'; }
+        else              { badge.style.display = 'none'; }
+
+        if (!reqs.length) {
+          body.innerHTML = '<div class="log-empty">No recharge requests yet.</div>';
+          return;
+        }
+
+        // Look up owner names from vehicle list (best-effort, inline)
+        body.innerHTML = reqs.map(r => {
+          const actionHtml = r.status === 'PENDING'
+            ? `<div class="action-btns">
+                 <button class="btn-accept" onclick="handleRecharge('${r.id}','accept')">✓ Accept</button>
+                 <button class="btn-reject" onclick="handleRecharge('${r.id}','reject')">✕ Reject</button>
+               </div>`
+            : `<span class="log-time">${r.resolved_at || '—'}</span>`;
+          return `
+            <div class="log-row rch-grid" id="rch-${r.id}">
+              <span class="log-vehicle">${r.vehicle_number}</span>
+              <span class="log-owner" id="owner-${r.id}">—</span>
+              <span class="log-amount">₹${r.amount}</span>
+              <span><span class="badge ${r.status.toLowerCase()}">${r.status}</span></span>
+              <span class="log-time">${r.created_at || '—'}</span>
+              <span>${actionHtml}</span>
+            </div>`;
+        }).join('');
+
+        // Fetch owner names
+        loadOwnerNames(reqs);
+      } catch (e) {
+        body.innerHTML = '<div class="log-empty">Failed to load requests.</div>';
+      }
+    }
+
+    async function loadOwnerNames(reqs) {
+      try {
+        const res  = await fetch(API + '/admin/transactions');
+        const data = await res.json();
+        const txs  = data.transactions || [];
+        const map  = {};
+        txs.forEach(t => { map[t.vehicle_number] = t.owner_name; });
+        reqs.forEach(r => {
+          const el = document.getElementById('owner-' + r.id);
+          if (el && map[r.vehicle_number]) el.textContent = map[r.vehicle_number];
+        });
+      } catch (_) {}
+    }
+
+    async function handleRecharge(reqId, action) {
+      const row = document.getElementById('rch-' + reqId);
+      if (row) {
+        const btns = row.querySelectorAll('button');
+        btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+      }
+      try {
+        const res  = await fetch(`${API}/admin/recharge-request/${reqId}/action`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ action }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchRechargeRequests(); // refresh
+        } else {
+          alert('Error: ' + data.message);
+          if (row) {
+            const btns = row.querySelectorAll('button');
+            btns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+          }
+        }
+      } catch (e) {
+        alert('Network error. Please try again.');
+      }
+    }
+
+    // Auto-refresh pending badge in background
+    async function refreshPendingCount() {
+      try {
+        const res  = await fetch(API + '/admin/recharge-requests');
+        const data = await res.json();
+        const pending = (data.requests || []).filter(r => r.status === 'PENDING').length;
+        const badge = document.getElementById('pendingBadge');
+        if (pending > 0) { badge.textContent = pending; badge.style.display = 'inline'; }
+        else              { badge.style.display = 'none'; }
+      } catch (_) {}
+    }
+
+    // ── Register Vehicle ─────────────────────────────────────────
+    async function submitRegisterVehicle() {
+      const msgEl = document.getElementById('regMsg');
+      const resEl = document.getElementById('regResult');
+      msgEl.style.display = 'none';
+      resEl.style.display  = 'none';
+
+      const name    = document.getElementById('regName').value.trim();
+      const vehicle = document.getElementById('regVehicle').value.trim();
+      const aadhaar = document.getElementById('regAadhaar').value.trim();
+      const phone   = document.getElementById('regPhone').value.trim();
+      const dob     = document.getElementById('regDob').value;
+      const vtype   = document.getElementById('regType').value;
+
+      if (!name || !vehicle || !aadhaar || !phone || !dob) {
+        showRegMsg('All fields are required.', 'error'); return;
+      }
+      if (aadhaar.length !== 12) { showRegMsg('Aadhaar must be exactly 12 digits.', 'error'); return; }
+      if (phone.length !== 10)   { showRegMsg('Phone must be exactly 10 digits.', 'error'); return; }
+
+      const btn = document.getElementById('btnRegSubmit');
+      btn.disabled = true; btn.textContent = 'Registering…';
+
+      try {
+        const res  = await fetch(API + '/admin/register-vehicle', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ name, vehicle_number: vehicle, aadhaar, phone, dob, vehicle_type: vtype }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          showRegMsg('Vehicle registered successfully!', 'success');
+          document.getElementById('rr-num').textContent    = data.vehicle_number;
+          document.getElementById('rr-name').textContent   = data.owner_name;
+          document.getElementById('rr-tollid').textContent = data.toll_id;
+          document.getElementById('rr-regat').textContent  = data.registered_at;
+          resEl.style.display = 'block';
+          // Clear form
+          ['regName','regVehicle','regAadhaar','regPhone','regDob'].forEach(id => {
+            document.getElementById(id).value = '';
+          });
+        } else {
+          showRegMsg(data.message || 'Registration failed.', 'error');
+        }
+      } catch (e) {
+        showRegMsg('Cannot connect to server.', 'error');
+      }
+      btn.disabled = false; btn.textContent = '➕ Register Vehicle & Generate Toll ID';
+    }
+
+    function showRegMsg(msg, type) {
+      const el = document.getElementById('regMsg');
+      el.textContent = msg;
+      el.className = 'reg-msg ' + type;
+      el.style.display = 'block';
+    }
+
+    // ── Vehicle Details (Admin) ───────────────────────────────────
+    async function adminSearchVehicle() {
+      const vehicle = document.getElementById('adminVdInput').value.trim();
+      const errEl   = document.getElementById('adminVdErr');
+      const resEl   = document.getElementById('adminVdResult');
+      errEl.style.display = 'none';
+      resEl.style.display = 'none';
+      if (!vehicle) {
+        errEl.textContent = 'Please enter a vehicle number.';
+        errEl.style.display = 'block'; return;
+      }
+      try {
+        const res  = await fetch(`${API}/vehicle-details?vehicle_number=${encodeURIComponent(vehicle)}`);
+        const data = await res.json();
+        if (!data.success) {
+          errEl.textContent = data.message || 'Vehicle not found.';
+          errEl.style.display = 'block'; return;
+        }
+        document.getElementById('avd-num').textContent     = data.vehicle_number || '—';
+        document.getElementById('avd-name').textContent    = data.owner_name     || '—';
+        document.getElementById('avd-type').textContent    = data.vehicle_type   || '—';
+        document.getElementById('avd-balance').textContent = '₹' + (data.balance ?? '0');
+        document.getElementById('avd-phone').textContent   = data.phone          || '—';
+        document.getElementById('avd-dob').textContent     = data.dob            || '—';
+        document.getElementById('avd-tollid').textContent  = data.toll_id        || '—';
+        document.getElementById('avd-aadhaar').textContent = data.aadhaar        || '—';
+        document.getElementById('avd-reg').textContent     = data.registered_at  || '—';
+        resEl.style.display = 'block';
+      } catch (e) {
+        errEl.textContent = 'Cannot connect to server.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    updateLiveDashboard();
+    setInterval(updateLiveDashboard, 5000);
+    setInterval(refreshPendingCount, 8000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Toll System — Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0b0f1a;
+      --surface:   #111827;
+      --surface2:  #1a2235;
+      --border:    #1e2d45;
+      --border-hi: #2a4060;
+      --amber:     #f5a623;
+      --amber-dim: #b37518;
+      --teal:      #00d4aa;
+      --teal-dim:  #008f72;
+      --red:       #ff4d4d;
+      --green:     #28e07b;
+      --text-hi:   #e8edf5;
+      --text-mid:  #8a9bb5;
+      --text-lo:   #3d5070;
+      --font-display: 'Rajdhani', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --radius:    8px;
+      --radius-lg: 14px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-hi);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        linear-gradient(rgba(0,212,170,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient glow blobs */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(245,166,35,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      text-align: center;
+      margin-bottom: 56px;
+      animation: fade-up 0.6s ease both;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,212,170,0.08);
+      border: 1px solid rgba(0,212,170,0.2);
+      border-radius: 40px;
+      padding: 5px 16px;
+      font-size: 0.72rem;
+      font-family: var(--font-display);
+      letter-spacing: 0.15em;
+      color: var(--teal);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: blink 2s step-end infinite;
+    }
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      color: var(--text-hi);
+    }
+    .header h1 span { color: var(--amber); }
+    .header p {
+      margin-top: 14px;
+      color: var(--text-mid);
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* ─── Portal Cards ─── */
+    .portals {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .portal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      width: 300px;
+      cursor: pointer;
+      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      animation: fade-up 0.6s ease both;
+    }
+    .portal-card:nth-child(2) { animation-delay: 0.1s; }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      transition: opacity 0.2s;
+    }
+    .portal-card.admin::before  { background: linear-gradient(90deg, var(--amber), #ff9900); }
+    .portal-card.user::before   { background: linear-gradient(90deg, var(--teal), #00a8ff); }
+
+    .portal-card:hover {
+      transform: translateY(-5px);
+    }
+    .portal-card.admin:hover  { border-color: var(--amber-dim); box-shadow: 0 12px 40px rgba(245,166,35,0.18); }
+    .portal-card.user:hover   { border-color: var(--teal-dim);  box-shadow: 0 12px 40px rgba(0,212,170,0.18); }
+
+    .portal-icon {
+      font-size: 3rem;
+      margin-bottom: 18px;
+      display: block;
+    }
+    .portal-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .portal-card.admin .portal-title { color: var(--amber); }
+    .portal-card.user  .portal-title { color: var(--teal); }
+
+    .portal-desc {
+      font-size: 0.83rem;
+      color: var(--text-mid);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .portal-btn {
+      display: block;
+      width: 100%;
+      padding: 13px 20px;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .portal-card.admin .portal-btn {
+      background: var(--amber);
+      color: #0b0f1a;
+    }
+    .portal-card.admin .portal-btn:hover {
+      background: #ffbe4a;
+      box-shadow: 0 4px 20px rgba(245,166,35,0.4);
+    }
+    .portal-card.user .portal-btn {
+      background: var(--teal);
+      color: #0b0f1a;
+    }
+    .portal-card.user .portal-btn:hover {
+      background: #00f0c4;
+      box-shadow: 0 4px 20px rgba(0,212,170,0.4);
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      text-align: center;
+      padding: 14px;
+      font-size: 0.72rem;
+      color: var(--text-lo);
+      letter-spacing: 0.05em;
+      border-top: 1px solid var(--border);
+      background: rgba(11,15,26,0.85);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ─── Modal Overlay ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6,10,18,0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      width: 380px;
+      max-width: 90vw;
+      position: relative;
+      transform: translateY(20px);
+      transition: transform 0.25s ease;
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+
+    .modal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .modal.admin::before { background: linear-gradient(90deg, var(--amber), #ff9900); }
+    .modal.user::before  { background: linear-gradient(90deg, var(--teal), #00a8ff); }
+
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: none;
+      border: none;
+      color: var(--text-lo);
+      font-size: 1.3rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--text-hi); }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .modal.admin .modal-title { color: var(--amber); }
+    .modal.user  .modal-title { color: var(--teal); }
+
+    .modal-sub {
+      font-size: 0.82rem;
+      color: var(--text-mid);
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      font-family: var(--font-display);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-hi);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input::placeholder { color: var(--text-lo); }
+    .modal.admin .form-input:focus { border-color: var(--amber-dim); box-shadow: 0 0 0 3px rgba(245,166,35,0.1); }
+    .modal.user  .form-input:focus { border-color: var(--teal-dim);  box-shadow: 0 0 0 3px rgba(0,212,170,0.1); }
+
+    .form-error {
+      font-size: 0.78rem;
+      color: var(--red);
+      margin-top: 8px;
+      min-height: 1.2em;
+      display: none;
+    }
+    .form-error.visible { display: block; }
+
+    .form-submit {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-top: 6px;
+    }
+    .modal.admin .form-submit { background: var(--amber); color: #0b0f1a; }
+    .modal.admin .form-submit:hover { background: #ffbe4a; box-shadow: 0 4px 20px rgba(245,166,35,0.35); }
+    .modal.user  .form-submit { background: var(--teal);  color: #0b0f1a; }
+    .modal.user  .form-submit:hover { background: #00f0c4; box-shadow: 0 4px 20px rgba(0,212,170,0.35); }
+
+    /* Hint below form */
+    .form-hint {
+      text-align: center;
+      font-size: 0.74rem;
+      color: var(--text-lo);
+      margin-top: 14px;
+    }
+    .form-hint span { color: var(--teal); }
+
+    /* ─── Animations ─── */
+    @keyframes blink    { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    @keyframes fade-up  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    @media (max-width: 680px) {
+      .portals { flex-direction: column; align-items: center; }
+      .portal-card { width: 100%; max-width: 340px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-badge">
+      <span class="status-dot"></span>
+      System Online
+    </div>
+    <h1>Smart <span>Toll</span> System</h1>
+    <p>Select your portal to continue</p>
+  </div>
+
+  <div class="portals">
+    <!-- Admin Portal -->
+    <div class="portal-card admin" onclick="openModal('admin')">
+      <span class="portal-icon">🛡️</span>
+      <div class="portal-title">Admin Portal</div>
+      <p class="portal-desc">Access the real-time dashboard with live vehicle counts and revenue tracking.</p>
+      <button class="portal-btn" onclick="event.stopPropagation(); openModal('admin')">Admin Login</button>
+    </div>
+
+    <!-- User / Employee Portal -->
+    <div class="portal-card user" onclick="openModal('user')">
+      <span class="portal-icon">👤</span>
+      <div class="portal-title">Employee Portal</div>
+      <p class="portal-desc">Log in to access the toll collection interface and process vehicle transactions.</p>
+      <button class="portal-btn" onclick="event.stopPropagation(); openModal('user')">User Login</button>
+    </div>
+  </div>
+
+  <!-- Admin Login Modal -->
+  <div class="modal-overlay" id="adminOverlay">
+    <div class="modal admin">
+      <button class="modal-close" onclick="closeModal('admin')">✕</button>
+      <div class="modal-title">Admin Login</div>
+      <p class="modal-sub">Enter your administrator credentials</p>
+
+      <div class="form-group">
+        <label class="form-label" for="adminUser">Username</label>
+        <input class="form-input" type="text" id="adminUser" placeholder="admin" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="adminPass">Password</label>
+        <input class="form-input" type="password" id="adminPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginAdmin()" />
+      </div>
+      <div class="form-error" id="adminError">Invalid username or password.</div>
+      <button class="form-submit" onclick="loginAdmin()">Login →</button>
+      <p class="form-hint">Demo credentials: <span>admin / admin123</span></p>
+    </div>
+  </div>
+
+  <!-- User Login Modal -->
+  <div class="modal-overlay" id="userOverlay">
+    <div class="modal user">
+      <button class="modal-close" onclick="closeModal('user')">✕</button>
+      <div class="modal-title">Employee Login</div>
+      <p class="modal-sub">Enter your employee credentials</p>
+
+      <div class="form-group">
+        <label class="form-label" for="userUser">Username</label>
+        <input class="form-input" type="text" id="userUser" placeholder="employee" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="userPass">Password</label>
+        <input class="form-input" type="password" id="userPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') loginUser()" />
+      </div>
+      <div class="form-error" id="userError">Invalid username or password.</div>
+      <button class="form-submit" onclick="loginUser()">Login →</button>
+      <p class="form-hint">Demo credentials: <span>employee / emp123</span></p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    TOLLNET Smart Collection System &nbsp;·&nbsp; OpenCV + Tesseract OCR
+  </footer>
+
+  <script>
+    // ─── Demo credentials ─────────────────────────
+    const ADMIN_CREDS = { username: 'admin',    password: 'admin123' };
+    const USER_CREDS  = { username: 'employee', password: 'emp123'  };
+
+    // ─── Modal controls ───────────────────────────
+    function openModal(type) {
+      document.getElementById(type + 'Overlay').classList.add('open');
+      setTimeout(() => {
+        document.getElementById(type === 'admin' ? 'adminUser' : 'userUser').focus();
+      }, 260);
+    }
+    function closeModal(type) {
+      document.getElementById(type + 'Overlay').classList.remove('open');
+      document.getElementById(type + 'Error').classList.remove('visible');
+    }
+
+    // Close on backdrop click
+    document.getElementById('adminOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeModal('admin');
+    });
+    document.getElementById('userOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeModal('user');
+    });
+
+    // ─── Login logic ──────────────────────────────
+    function loginAdmin() {
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value;
+      const err = document.getElementById('adminError');
+      if (u === ADMIN_CREDS.username && p === ADMIN_CREDS.password) {
+        sessionStorage.setItem('toll_role', 'admin');
+        window.location.href = 'admin.html';
+      } else {
+        err.classList.add('visible');
+        document.getElementById('adminPass').value = '';
+        document.getElementById('adminPass').focus();
+      }
+    }
+
+    function loginUser() {
+      const u = document.getElementById('userUser').value.trim();
+      const p = document.getElementById('userPass').value;
+      const err = document.getElementById('userError');
+      if (u === USER_CREDS.username && p === USER_CREDS.password) {
+        sessionStorage.setItem('toll_role', 'employee');
+        window.location.href = 'index.html';  // existing employee interface
+      } else {
+        err.classList.add('visible');
+        document.getElementById('userPass').value = '';
+        document.getElementById('userPass').focus();
+      }
+    }
+  </script>
+</body>
+</html>

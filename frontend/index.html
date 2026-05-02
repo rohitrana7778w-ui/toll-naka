@@ -3,217 +3,452 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Toll Collection System</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Smart Toll System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #0b0f1a;
+      --surface:   #111827;
+      --surface2:  #1a2235;
+      --border:    #1e2d45;
+      --border-hi: #2a4060;
+      --amber:     #f5a623;
+      --amber-dim: #b37518;
+      --teal:      #00d4aa;
+      --teal-dim:  #008f72;
+      --red:       #e74c4c;
+      --green:     #28e07b;
+      --text-hi:   #e8edf5;
+      --text-mid:  #8a9bb5;
+      --text-lo:   #3d5070;
+      --font-disp: 'Rajdhani', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --r:  8px;
+      --rl: 14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-hi);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        linear-gradient(rgba(0,212,170,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,170,0.028) 1px, transparent 1px);
+      background-size: 40px 40px;
+      overflow: hidden;
+    }
+
+    /* ── ambient blobs ── */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(80px);
+    }
+    .blob-teal  { width:500px;height:500px;top:-180px;left:-180px;background:rgba(0,212,170,0.055); }
+    .blob-amber { width:460px;height:460px;bottom:-160px;right:-160px;background:rgba(245,166,35,0.045); }
+
+    /* ── header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 52px;
+      animation: fadeUp .55s ease both;
+    }
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,212,170,0.07);
+      border: 1px solid rgba(0,212,170,0.18);
+      border-radius: 40px;
+      padding: 5px 16px;
+      font-family: var(--font-disp);
+      font-size: .7rem;
+      letter-spacing: .16em;
+      color: var(--teal);
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+    .dot {
+      width:7px;height:7px;border-radius:50%;
+      background:var(--green);box-shadow:0 0 6px var(--green);
+      animation: blink 2s step-end infinite;
+    }
+    h1 {
+      font-family: var(--font-disp);
+      font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+      font-weight: 700;
+      letter-spacing: .04em;
+      line-height: 1.08;
+      color: var(--text-hi);
+    }
+    h1 em { font-style: normal; color: var(--amber); }
+    .tagline {
+      margin-top: 13px;
+      color: var(--text-mid);
+      font-size: .92rem;
+      letter-spacing: .02em;
+    }
+
+    /* ── portal cards ── */
+    .portals {
+      display: flex;
+      gap: 26px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rl);
+      padding: 38px 34px 34px;
+      width: 288px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform .22s, border-color .22s, box-shadow .22s;
+      animation: fadeUp .55s ease both;
+    }
+    .card:nth-child(2) { animation-delay: .1s; }
+    .card::before {
+      content:'';
+      position:absolute;top:0;left:0;right:0;height:3px;
+    }
+    .card.admin::before { background: linear-gradient(90deg,var(--amber),#ff9900); }
+    .card.user::before  { background: linear-gradient(90deg,var(--teal),#00aaff); }
+    .card:hover { transform: translateY(-6px); }
+    .card.admin:hover { border-color:var(--amber-dim); box-shadow:0 14px 44px rgba(245,166,35,.17); }
+    .card.user:hover  { border-color:var(--teal-dim);  box-shadow:0 14px 44px rgba(0,212,170,.17); }
+
+    .card-icon { font-size: 2.8rem; margin-bottom: 16px; }
+    .card-title {
+      font-family: var(--font-disp);
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .card.admin .card-title { color: var(--amber); }
+    .card.user  .card-title { color: var(--teal); }
+    .card-desc {
+      font-size: .8rem;
+      color: var(--text-mid);
+      line-height: 1.6;
+      margin-bottom: 26px;
+    }
+    .card-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--r);
+      font-family: var(--font-disp);
+      font-size: .98rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .18s;
+    }
+    .card.admin .card-btn { background:var(--amber); color:#0b0f1a; }
+    .card.admin .card-btn:hover { background:#ffbe4a; box-shadow:0 4px 20px rgba(245,166,35,.38); }
+    .card.user  .card-btn { background:var(--teal);  color:#0b0f1a; }
+    .card.user  .card-btn:hover { background:#00f0c4; box-shadow:0 4px 20px rgba(0,212,170,.38); }
+
+    /* ── modal ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(6,10,18,.88);
+      backdrop-filter: blur(9px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300;
+      opacity: 0; pointer-events: none;
+      transition: opacity .24s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--rl);
+      padding: 38px 34px;
+      width: 370px;
+      max-width: 92vw;
+      position: relative;
+      transform: translateY(18px);
+      transition: transform .24s;
+    }
+    .overlay.open .modal { transform: translateY(0); }
+
+    .modal::before {
+      content:'';
+      position:absolute;top:0;left:0;right:0;height:3px;
+      border-radius:var(--rl) var(--rl) 0 0;
+    }
+    .modal.admin::before { background:linear-gradient(90deg,var(--amber),#ff9900); }
+    .modal.user::before  { background:linear-gradient(90deg,var(--teal),#00aaff); }
+
+    .modal-close {
+      position:absolute; top:13px; right:15px;
+      background:none; border:none;
+      color:var(--text-lo); font-size:1.25rem;
+      cursor:pointer; line-height:1;
+      transition:color .15s;
+    }
+    .modal-close:hover { color:var(--text-hi); }
+
+    .modal-title {
+      font-family: var(--font-disp);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .modal.admin .modal-title { color:var(--amber); }
+    .modal.user  .modal-title { color:var(--teal); }
+
+    .modal-sub { font-size: .8rem; color:var(--text-mid); margin-bottom: 26px; }
+
+    .field { margin-bottom: 17px; }
+    .field label {
+      display:block;
+      font-family: var(--font-disp);
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      margin-bottom: 7px;
+    }
+    .field input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text-hi);
+      font-family: var(--font-body);
+      font-size: .94rem;
+      padding: 11px 13px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .field input::placeholder { color:var(--text-lo); }
+    .modal.admin .field input:focus { border-color:var(--amber-dim); box-shadow:0 0 0 3px rgba(245,166,35,.09); }
+    .modal.user  .field input:focus { border-color:var(--teal-dim);  box-shadow:0 0 0 3px rgba(0,212,170,.09); }
+
+    .form-err {
+      font-size: .76rem;
+      color: var(--red);
+      margin-bottom: 12px;
+      min-height: 1.1em;
+      display: none;
+    }
+    .form-err.show { display:block; }
+
+    .form-btn {
+      width:100%; padding:12px;
+      border:none; border-radius:var(--r);
+      font-family:var(--font-disp); font-size:1.02rem;
+      font-weight:700; letter-spacing:.07em;
+      text-transform:uppercase; cursor:pointer;
+      transition:all .18s; position:relative;
+    }
+    .modal.admin .form-btn { background:var(--amber); color:#0b0f1a; }
+    .modal.admin .form-btn:hover { background:#ffbe4a; box-shadow:0 4px 20px rgba(245,166,35,.35); }
+    .modal.user  .form-btn { background:var(--teal);  color:#0b0f1a; }
+    .modal.user  .form-btn:hover { background:#00f0c4; box-shadow:0 4px 20px rgba(0,212,170,.35); }
+    .form-btn:disabled { opacity:.55; cursor:not-allowed; }
+
+    .spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #0b0f1a;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin: 0 auto;
+    }
+    .form-btn.loading .btn-label { display:none; }
+    .form-btn.loading .spinner   { display:block; }
+
+    /* ── footer ── */
+    footer {
+      position:fixed; bottom:0; left:0; right:0;
+      text-align:center; padding:13px;
+      font-size:.7rem; color:var(--text-lo);
+      letter-spacing:.05em;
+      border-top:1px solid var(--border);
+      background:rgba(11,15,26,.88);
+      backdrop-filter:blur(8px);
+    }
+
+    /* ── animations ── */
+    @keyframes blink   { 0%,100%{opacity:1} 50%{opacity:.3} }
+    @keyframes fadeUp  { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin    { to{transform:rotate(360deg)} }
+
+    @media(max-width:640px){
+      .portals { flex-direction:column; align-items:center; }
+      .card { width:100%; max-width:330px; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- ─── Top Header ─────────────────────────────────────────── -->
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="topbar-logo">
-        <span class="logo-icon">⬡</span>
-        <span class="logo-text">TOLL<strong>NET</strong></span>
-      </div>
-      <div class="topbar-status">
-        <span class="status-dot"></span> System Online
-      </div>
+  <div class="blob blob-teal"></div>
+  <div class="blob blob-amber"></div>
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <div class="live-badge"><span class="dot"></span> System Online</div>
+    <h1>Smart <em>Toll</em> System</h1>
+    <p class="tagline">Select your portal to continue</p>
+  </div>
+
+  <!-- ── Portal Cards ── -->
+  <div class="portals">
+    <div class="card admin" onclick="openModal('admin')">
+      <div class="card-icon">🛡️</div>
+      <div class="card-title">Admin Portal</div>
+      <p class="card-desc">Real-time dashboard with live vehicle counts and revenue tracking.</p>
+      <button class="card-btn" onclick="event.stopPropagation();openModal('admin')">Admin Login</button>
     </div>
-  </header>
+    <div class="card user" onclick="openModal('user')">
+      <div class="card-icon">👤</div>
+      <div class="card-title">User Portal</div>
+      <p class="card-desc">Employee interface for processing vehicle toll transactions.</p>
+      <button class="card-btn" onclick="event.stopPropagation();openModal('user')">User Login</button>
+    </div>
+  </div>
 
-  <!-- ─── Main Layout ────────────────────────────────────────── -->
-  <main class="layout">
-
-    <!-- LEFT PANEL: Input Methods -->
-    <section class="panel panel-input">
-
-      <!-- ── TAB SWITCHER ── -->
-      <div class="tab-bar">
-        <button class="tab active" id="tabCamera" onclick="switchTab('camera')">
-          📷 Camera Scan
-        </button>
-        <button class="tab" id="tabUpload" onclick="switchTab('upload')">
-          📂 Upload Plate
-        </button>
+  <!-- ── Admin Login Modal ── -->
+  <div class="overlay" id="adminOverlay">
+    <div class="modal admin">
+      <button class="modal-close" onclick="closeModal('admin')">✕</button>
+      <div class="modal-title">Admin Login</div>
+      <p class="modal-sub">Enter your administrator credentials</p>
+      <div class="field">
+        <label for="aUser">Username</label>
+        <input type="text" id="aUser" placeholder="rohit" autocomplete="off" />
       </div>
-
-      <!-- ════ CAMERA TAB ════ -->
-      <div id="cameraTab">
-        <div class="panel-label">LIVE FEED</div>
-        <div class="camera-frame" id="cameraFrame">
-          <video id="videoFeed" autoplay playsinline></video>
-          <canvas id="captureCanvas" style="display:none;"></canvas>
-          <div class="camera-overlay" id="cameraOverlay">
-            <div class="camera-placeholder">
-              <div class="cam-icon">📷</div>
-              <p>Camera not started</p>
-            </div>
-          </div>
-          <div class="corner tl"></div><div class="corner tr"></div>
-          <div class="corner bl"></div><div class="corner br"></div>
-        </div>
-
-        <div class="captured-section" id="capturedSection" style="display:none;">
-          <div class="panel-label small">CAPTURED FRAME</div>
-          <img id="capturedImage" src="" alt="Captured" class="captured-img" />
-        </div>
-
-        <div class="controls">
-          <button class="btn btn-start" id="btnStart" onclick="startCamera()">
-            <span class="btn-icon">▶</span> Start Camera
-          </button>
-          <button class="btn btn-capture" id="btnCapture" onclick="captureAndProcess()" disabled>
-            <span class="btn-icon">⊙</span> Capture &amp; Process
-          </button>
-        </div>
+      <div class="field">
+        <label for="aPass">Password</label>
+        <input type="password" id="aPass" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') doLogin('admin')" />
       </div>
+      <div class="form-err" id="adminErr"></div>
+      <button class="form-btn" id="adminBtn" onclick="doLogin('admin')">
+        <span class="btn-label">Login →</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
 
-      <!-- ════ UPLOAD TAB ════ -->
-      <div id="uploadTab" style="display:none;">
-        <div class="panel-label">UPLOAD NUMBER PLATE</div>
-
-        <!-- Drop zone -->
-        <div class="dropzone" id="dropzone"
-             onclick="document.getElementById('fileInput').click()"
-             ondragover="handleDragOver(event)"
-             ondragleave="handleDragLeave(event)"
-             ondrop="handleDrop(event)">
-          <div class="dz-icon">⬆</div>
-          <p class="dz-text">Click to upload or drag &amp; drop</p>
-          <p class="dz-sub">JPG, PNG, BMP, WEBP or PDF · Max 10 MB</p>
-          <input type="file" id="fileInput" accept="image/*,.pdf"
-                 style="display:none;" onchange="handleFileSelect(event)" />
-        </div>
-
-        <!-- File preview -->
-        <div class="file-preview" id="filePreview" style="display:none;">
-          <div class="panel-label small">SELECTED FILE</div>
-          <div class="file-info-row">
-            <span class="file-thumb" id="fileThumb">📄</span>
-            <div class="file-meta">
-              <div class="file-name" id="fileName">—</div>
-              <div class="file-size" id="fileSize">—</div>
-            </div>
-            <button class="btn-clear" onclick="clearFile()" title="Remove">✕</button>
-          </div>
-          <img id="imagePreview" class="captured-img" style="display:none; margin-top:10px;" alt="Preview" />
-        </div>
-
-        <div class="controls" style="margin-top:16px;">
-          <button class="btn btn-capture" id="btnUpload" onclick="uploadAndProcess()" disabled>
-            <span class="btn-icon">⊙</span> Process Upload
-          </button>
-        </div>
+  <!-- ── User Login Modal ── -->
+  <div class="overlay" id="userOverlay">
+    <div class="modal user">
+      <button class="modal-close" onclick="closeModal('user')">✕</button>
+      <div class="modal-title">User Login</div>
+      <p class="modal-sub">Enter your employee credentials</p>
+      <div class="field">
+        <label for="uUser">Username</label>
+        <input type="text" id="uUser" placeholder="dev" autocomplete="off" />
       </div>
-
-      <!-- ── SHARED: Loading bar ── -->
-      <div class="loading-bar" id="loadingBar">
-        <div class="loading-fill" id="loadingFill"></div>
+      <div class="field">
+        <label for="uPass">Password</label>
+        <input type="password" id="uPass" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') doLogin('user')" />
       </div>
-      <div class="loading-label" id="loadingLabel" style="display:none;">Processing…</div>
-    </section>
+      <div class="form-err" id="userErr"></div>
+      <button class="form-btn" id="userBtn" onclick="doLogin('user')">
+        <span class="btn-label">Login →</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
 
-    <!-- RIGHT PANEL: Results + Receipt -->
-    <section class="panel panel-results">
-      <div class="panel-label">TRANSACTION RESULT</div>
+  <footer>TOLLNET Smart Collection System &nbsp;·&nbsp; OpenCV + Tesseract OCR</footer>
 
-      <!-- Idle -->
-      <div class="result-idle" id="resultIdle">
-        <div class="idle-graphic">
-          <div class="hex-ring"><div class="hex-inner">⬡</div></div>
-        </div>
-        <p class="idle-text">Awaiting vehicle scan…</p>
-        <p class="idle-sub">Use the camera or upload a number plate image / PDF.</p>
-      </div>
+  <script>
+    const API = 'http://127.0.0.1:5001';
 
-      <!-- Result -->
-      <div class="result-data" id="resultData" style="display:none;">
+    function openModal(type) {
+      document.getElementById(type + 'Overlay').classList.add('open');
+      setTimeout(() => {
+        document.getElementById(type === 'admin' ? 'aUser' : 'uUser').focus();
+      }, 240);
+    }
+    function closeModal(type) {
+      document.getElementById(type + 'Overlay').classList.remove('open');
+      setErr(type, '');
+    }
 
-        <!-- Status banner -->
-        <div class="status-banner" id="statusBanner">
-          <span class="status-icon" id="statusIcon">✓</span>
-          <span class="status-text" id="statusText">Transaction Successful</span>
-        </div>
+    // Close on backdrop click
+    ['admin','user'].forEach(t => {
+      document.getElementById(t + 'Overlay').addEventListener('click', function(e) {
+        if (e.target === this) closeModal(t);
+      });
+    });
 
-        <!-- Vehicle info grid -->
-        <div class="info-grid">
-          <div class="info-card">
-            <div class="info-label">Vehicle Number</div>
-            <div class="info-value mono" id="resVehicleNum">—</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Owner Name</div>
-            <div class="info-value" id="resOwner">—</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Vehicle Type</div>
-            <div class="info-value" id="resVehicleType">—</div>
-          </div>
-          <div class="info-card">
-            <div class="info-label">Toll Deducted</div>
-            <div class="info-value accent" id="resToll">—</div>
-          </div>
-          <div class="info-card span2">
-            <div class="info-label">Remaining Balance</div>
-            <div class="info-value large" id="resBalance">—</div>
-          </div>
-        </div>
+    function setErr(type, msg) {
+      const el = document.getElementById(type + 'Err');
+      el.textContent = msg;
+      el.classList.toggle('show', !!msg);
+    }
+    function setBusy(type, busy) {
+      const btn = document.getElementById(type + 'Btn');
+      btn.classList.toggle('loading', busy);
+      btn.disabled = busy;
+    }
 
-        <!-- Receipt -->
-        <div class="receipt" id="receiptBox" style="display:none;">
-          <div class="receipt-header">
-            <span class="receipt-icon">🧾</span>
-            <span>TOLL RECEIPT</span>
-          </div>
-          <div class="receipt-row">
-            <span>Receipt No.</span>
-            <span class="mono" id="rcptId">—</span>
-          </div>
-          <div class="receipt-row">
-            <span>Date &amp; Time</span>
-            <span id="rcptDate">—</span>
-          </div>
-          <div class="receipt-row">
-            <span>Vehicle</span>
-            <span class="mono" id="rcptVehicle">—</span>
-          </div>
-          <div class="receipt-row">
-            <span>Owner</span>
-            <span id="rcptOwner">—</span>
-          </div>
-          <div class="receipt-row">
-            <span>Type</span>
-            <span id="rcptType">—</span>
-          </div>
-          <div class="receipt-row highlight">
-            <span>Toll Paid</span>
-            <span id="rcptToll">—</span>
-          </div>
-          <div class="receipt-row">
-            <span>Balance After</span>
-            <span id="rcptBalance">—</span>
-          </div>
-        </div>
+    async function doLogin(type) {
+      const isAdmin = type === 'admin';
+      const username = document.getElementById(isAdmin ? 'aUser' : 'uUser').value.trim();
+      const password = document.getElementById(isAdmin ? 'aPass' : 'uPass').value;
 
-        <!-- Message -->
-        <div class="msg-box" id="msgBox">
-          <span id="msgText">—</span>
-        </div>
+      setErr(type, '');
+      if (!username || !password) { setErr(type, 'Please enter both username and password.'); return; }
 
-        <button class="btn btn-reset" onclick="resetUI()">
-          <span class="btn-icon">↺</span> Scan Another Vehicle
-        </button>
-      </div>
-    </section>
-  </main>
+      setBusy(type, true);
+      try {
+        const res  = await fetch(API + '/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
 
-  <footer class="footer">
-    TOLLNET Smart Collection System &nbsp;·&nbsp; OpenCV + Tesseract OCR
-  </footer>
+        if (data.success) {
+          // Store session
+          sessionStorage.setItem('toll_user',     data.username);
+          sessionStorage.setItem('toll_role',     data.role);
+          sessionStorage.setItem('toll_name',     data.name);
 
-  <script src="script.js"></script>
+          if (data.role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'employee.html';
+          }
+        } else {
+          setErr(type, data.message || 'Invalid credentials.');
+          document.getElementById(isAdmin ? 'aPass' : 'uPass').value = '';
+        }
+      } catch (err) {
+        setErr(type, 'Cannot connect to server. Make sure Flask is running on port 5001.');
+      }
+      setBusy(type, false);
+    }
+  </script>
 </body>
 </html>

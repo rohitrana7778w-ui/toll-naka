@@ -1,50 +1,127 @@
-[
-  {
-    "vehicle_number": "ABC123",
-    "owner_name": "Rahul Sharma",
-    "vehicle_type": "car",
-    "balance": 400
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "rohit",
+      "password": "rohit123",
+      "role": "admin",
+      "name": "Rohit Sharma"
+    },
+    {
+      "id": 2,
+      "username": "dev",
+      "password": "dev123",
+      "role": "employee",
+      "name": "Dev Kumar"
+    }
+  ],
+  "vehicles": [
+    {
+      "vehicle_number": "ABC123",
+      "owner_name": "Rahul Sharma",
+      "vehicle_type": "car",
+      "balance": 1600
+    },
+    {
+      "vehicle_number": "DL4CAF7890",
+      "owner_name": "Priya Mehta",
+      "vehicle_type": "bike",
+      "balance": 300
+    },
+    {
+      "vehicle_number": "MH12AB1234",
+      "owner_name": "Suresh Kumar",
+      "vehicle_type": "truck",
+      "balance": 600
+    },
+    {
+      "vehicle_number": "KA05MG9999",
+      "owner_name": "Anjali Singh",
+      "vehicle_type": "car",
+      "balance": 1000
+    },
+    {
+      "vehicle_number": "UP32CX4567",
+      "owner_name": "Vikram Yadav",
+      "vehicle_type": "bus",
+      "balance": 60
+    },
+    {
+      "vehicle_number": "TN09BB2222",
+      "owner_name": "Lakshmi Nair",
+      "vehicle_type": "bike",
+      "balance": 0
+    },
+    {
+      "vehicle_number": "RJ14GB5678",
+      "owner_name": "Deepak Joshi",
+      "vehicle_type": "truck",
+      "balance": 800
+    },
+    {
+      "vehicle_number": "GJ01AA0001",
+      "owner_name": "Meena Patel",
+      "vehicle_type": "bus",
+      "balance": 450
+    }
+  ],
+  "transactions": [
+    {
+      "receipt_id": "TN-20260502-D7B5",
+      "date_time": "02 May 2026, 02:27 PM",
+      "vehicle_number": "ABC123",
+      "owner_name": "Rahul Sharma",
+      "vehicle_type": "Car",
+      "toll_amount": 100,
+      "remaining_balance": 1600
+    },
+    {
+      "receipt_id": "TN-20260502-3B15",
+      "date_time": "02 May 2026, 02:26 PM",
+      "vehicle_number": "ABC123",
+      "owner_name": "Rahul Sharma",
+      "vehicle_type": "Car",
+      "toll_amount": 100,
+      "remaining_balance": 700
+    },
+    {
+      "receipt_id": "TN-20260502-3BC9",
+      "date_time": "02 May 2026, 01:55 PM",
+      "vehicle_number": "ABC123",
+      "owner_name": "Rahul Sharma",
+      "vehicle_type": "Car",
+      "toll_amount": 100,
+      "remaining_balance": 200
+    }
+  ],
+  "admin_stats": {
+    "vehicle_count": 3,
+    "total_revenue": 300
   },
-  {
-    "vehicle_number": "DL4CAF7890",
-    "owner_name": "Priya Mehta",
-    "vehicle_type": "bike",
-    "balance": 300
-  },
-  {
-    "vehicle_number": "MH12AB1234",
-    "owner_name": "Suresh Kumar",
-    "vehicle_type": "truck",
-    "balance": 600
-  },
-  {
-    "vehicle_number": "KA05MG9999",
-    "owner_name": "Anjali Singh",
-    "vehicle_type": "car",
-    "balance": 1000
-  },
-  {
-    "vehicle_number": "UP32CX4567",
-    "owner_name": "Vikram Yadav",
-    "vehicle_type": "bus",
-    "balance": 60
-  },
-  {
-    "vehicle_number": "TN09BB2222",
-    "owner_name": "Lakshmi Nair",
-    "vehicle_type": "bike",
-    "balance": 0
-  },
-  {
-    "vehicle_number": "RJ14GB5678",
-    "owner_name": "Deepak Joshi",
-    "vehicle_type": "truck",
-    "balance": 800
-  },
-  {
-    "vehicle_number": "GJ01AA0001",
-    "owner_name": "Meena Patel",
-    "vehicle_type": "bus",
-    "balance": 450
-  }
-]
+  "recharge_requests": [
+    {
+      "id": "RCH-156636B3",
+      "vehicle_number": "ABC123",
+      "amount": 1000,
+      "status": "APPROVED",
+      "created_at": "02 May 2026, 02:27 PM",
+      "resolved_at": "02 May 2026, 02:27 PM"
+    },
+    {
+      "id": "RCH-3B52863B",
+      "vehicle_number": "ABC123",
+      "amount": 200,
+      "status": "REJECTED",
+      "created_at": "02 May 2026, 02:25 PM",
+      "resolved_at": "02 May 2026, 02:26 PM"
+    },
+    {
+      "id": "RCH-E1A05E67",
+      "vehicle_number": "ABC123",
+      "amount": 600,
+      "status": "APPROVED",
+      "created_at": "02 May 2026, 02:24 PM",
+      "resolved_at": "02 May 2026, 02:25 PM"
+    }
+  ]
+}
