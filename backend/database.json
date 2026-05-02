@@ -1,0 +1,38 @@
+[
+  {
+    "vehicle_id": "ABC123",
+    "owner": "Rahul Sharma",
+    "balance": 350,
+    "toll_rate": 50
+  },
+  {
+    "vehicle_id": "DL4CAF7890",
+    "owner": "Priya Mehta",
+    "balance": 300,
+    "toll_rate": 75
+  },
+  {
+    "vehicle_id": "MH12AB1234",
+    "owner": "Suresh Kumar",
+    "balance": 120,
+    "toll_rate": 150
+  },
+  {
+    "vehicle_id": "KA05MG9999",
+    "owner": "Anjali Singh",
+    "balance": 950,
+    "toll_rate": 50
+  },
+  {
+    "vehicle_id": "UP32CX4567",
+    "owner": "Vikram Yadav",
+    "balance": 60,
+    "toll_rate": 75
+  },
+  {
+    "vehicle_id": "TN09BB2222",
+    "owner": "Lakshmi Nair",
+    "balance": 0,
+    "toll_rate": 50
+  }
+]

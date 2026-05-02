@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Toll Collection System</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Fonts: Rajdhani (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ─── Top Header Bar ─────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">TOLL<strong>NET</strong></span>
+      </div>
+      <div class="topbar-status" id="systemStatus">
+        <span class="status-dot"></span> System Online
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── Main Layout ────────────────────────────────────────── -->
+  <main class="layout">
+
+    <!-- LEFT PANEL: Camera -->
+    <section class="panel panel-camera">
+      <div class="panel-label">LIVE FEED</div>
+
+      <!-- Video Stream -->
+      <div class="camera-frame" id="cameraFrame">
+        <video id="videoFeed" autoplay playsinline></video>
+        <canvas id="captureCanvas" style="display:none;"></canvas>
+        <div class="camera-overlay" id="cameraOverlay">
+          <div class="camera-placeholder">
+            <div class="cam-icon">📷</div>
+            <p>Camera not started</p>
+          </div>
+        </div>
+        <!-- Corner decorations -->
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+      </div>
+
+      <!-- Captured Image Preview -->
+      <div class="captured-section" id="capturedSection" style="display:none;">
+        <div class="panel-label small">CAPTURED FRAME</div>
+        <img id="capturedImage" src="" alt="Captured frame" class="captured-img" />
+      </div>
+
+      <!-- Camera Controls -->
+      <div class="controls">
+        <button class="btn btn-start" id="btnStart" onclick="startCamera()">
+          <span class="btn-icon">▶</span> Start Camera
+        </button>
+        <button class="btn btn-capture" id="btnCapture" onclick="captureAndProcess()" disabled>
+          <span class="btn-icon">⊙</span> Capture &amp; Process
+        </button>
+      </div>
+
+      <!-- Loading Bar -->
+      <div class="loading-bar" id="loadingBar">
+        <div class="loading-fill" id="loadingFill"></div>
+      </div>
+      <div class="loading-label" id="loadingLabel" style="display:none;">Processing image…</div>
+    </section>
+
+    <!-- RIGHT PANEL: Results -->
+    <section class="panel panel-results">
+      <div class="panel-label">TRANSACTION RESULT</div>
+
+      <!-- Idle State -->
+      <div class="result-idle" id="resultIdle">
+        <div class="idle-graphic">
+          <div class="hex-ring">
+            <div class="hex-inner">⬡</div>
+          </div>
+        </div>
+        <p class="idle-text">Awaiting vehicle scan…</p>
+        <p class="idle-sub">Position the vehicle ID card in front of the camera, then click Capture &amp; Process.</p>
+      </div>
+
+      <!-- Result Cards (hidden until result arrives) -->
+      <div class="result-data" id="resultData" style="display:none;">
+
+        <!-- Status Banner -->
+        <div class="status-banner" id="statusBanner">
+          <span class="status-icon" id="statusIcon">✓</span>
+          <span class="status-text" id="statusText">Transaction Successful</span>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-label">Vehicle ID</div>
+            <div class="info-value mono" id="resVehicleId">—</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Owner</div>
+            <div class="info-value" id="resOwner">—</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Toll Deducted</div>
+            <div class="info-value accent" id="resToll">—</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Remaining Balance</div>
+            <div class="info-value" id="resBalance">—</div>
+          </div>
+        </div>
+
+        <!-- Message Box -->
+        <div class="msg-box" id="msgBox">
+          <span id="msgText">—</span>
+        </div>
+
+        <!-- Scan Again -->
+        <button class="btn btn-reset" onclick="resetUI()">
+          <span class="btn-icon">↺</span> Scan Another Vehicle
+        </button>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ─── Footer ─────────────────────────────────────────────── -->
+  <footer class="footer">
+    TOLLNET Smart Collection System &nbsp;·&nbsp; Powered by OpenCV &amp; Tesseract OCR
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
