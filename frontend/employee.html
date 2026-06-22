@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Toll Collection System — Employee</title>
+  <title>Smart Toll Collection System — User Panel</title>
   <script>
     (function() {
       if (sessionStorage.getItem('toll_role') !== 'employee') {
@@ -16,9 +16,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    /* ── Recharge section ── */
+
+    /* ═══════════════════════════════════════
+       RECHARGE REQUEST SECTION
+    ═══════════════════════════════════════ */
     .recharge-section {
-      margin-top: 28px;
+      margin-top: 24px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -27,32 +30,33 @@
     .recharge-header {
       background: var(--surface2);
       border-bottom: 1px solid var(--border);
-      padding: 14px 20px;
+      padding: 13px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
     }
     .recharge-title {
       font-family: var(--font-display);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 700;
       letter-spacing: 0.15em;
       text-transform: uppercase;
       color: var(--teal);
     }
-    .recharge-body { padding: 20px; }
-    .rch-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
-    .rch-field { flex: 1; min-width: 120px; }
+    .recharge-body { padding: 18px; }
+
+    /* input row */
+    .rch-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    .rch-field { flex: 1; min-width: 110px; }
     .rch-field label {
       display: block;
       font-family: var(--font-display);
-      font-size: 0.68rem;
+      font-size: 0.66rem;
       font-weight: 600;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.13em;
       text-transform: uppercase;
       color: var(--text-mid);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
     .rch-field input {
       width: 100%;
@@ -61,10 +65,11 @@
       border-radius: 8px;
       color: var(--text-hi);
       font-family: var(--font-body);
-      font-size: 0.9rem;
-      padding: 10px 12px;
+      font-size: 0.88rem;
+      padding: 9px 11px;
       outline: none;
       transition: border-color 0.2s;
+      box-sizing: border-box;
     }
     .rch-field input:focus { border-color: var(--teal-dim); box-shadow: 0 0 0 3px rgba(0,212,170,0.09); }
     .rch-field input::placeholder { color: var(--text-lo); }
@@ -74,152 +79,246 @@
       color: #0b0f1a;
       border: none;
       border-radius: 8px;
-      padding: 10px 20px;
+      padding: 9px 18px;
       font-family: var(--font-display);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       font-weight: 700;
-      letter-spacing: 0.07em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       cursor: pointer;
       transition: all 0.18s;
       white-space: nowrap;
+      align-self: flex-end;
     }
-    .btn-rch-submit:hover { background: #00f0c4; box-shadow: 0 4px 16px rgba(0,212,170,0.3); }
-    .btn-rch-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-rch-submit:hover { background: #00f0c4; box-shadow: 0 4px 14px rgba(0,212,170,0.3); }
+    .btn-rch-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .rch-msg {
-      font-size: 0.82rem;
+    .rch-flash {
+      font-size: 0.81rem;
       padding: 8px 12px;
       border-radius: 7px;
-      margin-bottom: 14px;
+      margin-top: 12px;
       display: none;
     }
-    .rch-msg.success { background: rgba(40,224,123,0.1); color: #28e07b; border: 1px solid rgba(40,224,123,0.25); }
-    .rch-msg.error   { background: rgba(255,77,77,0.1);  color: #ff6b6b; border: 1px solid rgba(255,77,77,0.25); }
-    .rch-msg.show    { display: block; }
+    .rch-flash.success { background: rgba(40,224,123,0.1); color: #28e07b; border: 1px solid rgba(40,224,123,0.25); display: block; }
+    .rch-flash.error   { background: rgba(255,77,77,0.1);  color: #ff6b6b; border: 1px solid rgba(255,77,77,0.25); display: block; }
 
-    /* Status list */
-    .btn-check-status {
-      background: none;
-      border: 1px solid var(--teal-dim);
-      color: var(--teal);
-      border-radius: 7px;
-      padding: 5px 14px;
-      font-family: var(--font-display);
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-check-status:hover { background: rgba(0,212,170,0.1); }
-
-    .status-list { margin-top: 0; }
-    .status-item {
-      display: grid;
-      grid-template-columns: 1fr 0.7fr 0.8fr 1.2fr;
-      gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.82rem;
-      align-items: center;
-    }
-    .status-item:last-child { border-bottom: none; }
-    .si-vehicle { font-family: 'Courier New', monospace; color: var(--amber); font-size: 0.8rem; }
-    .si-amount  { color: var(--teal); font-family: var(--font-display); font-weight: 600; }
-    .si-date    { color: var(--text-mid); font-size: 0.75rem; }
-
-    .badge { display: inline-flex; align-items: center; padding: 3px 9px;
-      border-radius: 20px; font-size: 0.7rem; font-family: var(--font-display);
-      font-weight: 700; letter-spacing: 0.1em; }
-    .badge.pending  { background: rgba(245,166,35,0.15); color: #f5a623; border: 1px solid rgba(245,166,35,0.3); }
-    .badge.approved { background: rgba(40,224,123,0.12); color: #28e07b; border: 1px solid rgba(40,224,123,0.3); }
-    .badge.rejected { background: rgba(255,77,77,0.12);  color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3); }
-
-    .status-empty { text-align: center; padding: 20px; color: var(--text-lo); font-size: 0.82rem; }
-
-    /* Vehicle Details section */
-    .vd-section {
-      margin-top: 20px;
+    /* ═══════════════════════════════════════
+       REQUEST HISTORY SECTION
+    ═══════════════════════════════════════ */
+    .history-section {
+      margin-top: 18px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
     }
-    .vd-header {
+    .history-header {
       background: var(--surface2);
       border-bottom: 1px solid var(--border);
-      padding: 14px 20px;
+      padding: 13px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .history-title {
       font-family: var(--font-display);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 700;
       letter-spacing: 0.15em;
       text-transform: uppercase;
       color: var(--amber);
+      white-space: nowrap;
     }
-    .vd-body { padding: 20px; }
-    .vd-search-row { display: flex; gap: 10px; margin-bottom: 14px; }
-    .vd-search-row input {
+    .history-search-wrap {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+      max-width: 320px;
+    }
+    .history-search-wrap input {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      color: var(--text-hi);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 0;
+    }
+    .history-search-wrap input:focus { border-color: var(--amber-dim); box-shadow: 0 0 0 3px rgba(245,166,35,0.08); }
+    .history-search-wrap input::placeholder { color: var(--text-lo); font-size: 0.78rem; }
+    .btn-history-search {
+      background: var(--amber);
+      color: #0b0f1a;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 14px;
+      font-family: var(--font-display);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-history-search:hover { background: #ffbe4a; }
+
+    .history-body { padding: 0; }
+
+    /* table */
+    .hist-table { width: 100%; border-collapse: collapse; }
+    .hist-table thead tr {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .hist-table th {
+      font-family: var(--font-display);
+      font-size: 0.64rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--text-lo);
+      padding: 9px 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .hist-table td {
+      padding: 9px 14px;
+      font-size: 0.82rem;
+      color: var(--text-mid);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .hist-table tbody tr:last-child td { border-bottom: none; }
+    .hist-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+    .td-tollid { font-family: 'Courier New', monospace; color: var(--amber); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; }
+    .td-amount { color: var(--teal); font-family: var(--font-display); font-weight: 600; }
+    .td-date   { color: var(--text-lo); font-size: 0.75rem; }
+    .hist-empty {
+      text-align: center;
+      padding: 28px 16px;
+      color: var(--text-lo);
+      font-size: 0.82rem;
+      font-style: italic;
+    }
+
+    /* ═══════════════════════════════════════
+       STATUS CHECK SECTION
+    ═══════════════════════════════════════ */
+    .status-section {
+      margin-top: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .status-header {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status-title {
+      font-family: var(--font-display);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #a78bfa;
+    }
+    .status-body { padding: 18px; }
+    .status-input-row { display: flex; gap: 10px; align-items: flex-end; }
+    .status-input-row input {
       flex: 1;
       background: var(--surface2);
       border: 1.5px solid var(--border);
       border-radius: 8px;
       color: var(--text-hi);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      padding: 10px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      padding: 10px 14px;
       outline: none;
       transition: border-color 0.2s;
+      text-transform: uppercase;
     }
-    .vd-search-row input:focus { border-color: var(--amber-dim); box-shadow: 0 0 0 3px rgba(245,166,35,0.09); }
-    .vd-search-row input::placeholder { color: var(--text-lo); }
-    .btn-vd-search {
-      background: var(--amber);
-      color: #0b0f1a;
+    .status-input-row input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
+    .status-input-row input::placeholder { color: var(--text-lo); font-size: 0.82rem; font-weight: 400; letter-spacing: 0.04em; font-family: var(--font-body); }
+    .btn-check {
+      background: #7c3aed;
+      color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 10px 18px;
+      padding: 10px 20px;
       font-family: var(--font-display);
       font-size: 0.88rem;
       font-weight: 700;
-      letter-spacing: 0.07em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       cursor: pointer;
       transition: all 0.18s;
       white-space: nowrap;
     }
-    .btn-vd-search:hover { background: #ffbe4a; }
-    .vd-result { display: none; }
-    .vd-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .btn-check:hover { background: #6d28d9; }
+    .status-hint {
+      font-size: 0.76rem;
+      color: var(--text-lo);
+      margin-top: 8px;
+      margin-bottom: 0;
     }
-    .vd-item {
+    .status-result { margin-top: 16px; display: none; }
+    .status-result-label {
+      font-family: var(--font-display);
+      font-size: 0.66rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-lo);
+      margin-bottom: 10px;
+    }
+    .status-list { display: flex; flex-direction: column; gap: 8px; }
+    .status-card {
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px 14px;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 10px;
+      align-items: center;
     }
-    .vd-label {
-      font-family: var(--font-display);
-      font-size: 0.65rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-lo);
-      margin-bottom: 4px;
+    .sc-id   { font-family: 'Courier New', monospace; font-size: 0.72rem; color: var(--text-lo); }
+    .sc-info { display: flex; flex-direction: column; gap: 2px; }
+    .sc-tollid { font-family: 'Courier New', monospace; font-size: 0.82rem; color: var(--amber); font-weight: 700; }
+    .sc-date   { font-size: 0.72rem; color: var(--text-lo); }
+    .sc-amount { font-family: var(--font-display); font-size: 0.92rem; font-weight: 700; color: var(--teal); }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 0.68rem; font-family: var(--font-display);
+      font-weight: 700; letter-spacing: 0.1em;
     }
-    .vd-value {
-      font-size: 0.9rem;
-      color: var(--text-hi);
-      font-weight: 500;
+    .badge.pending  { background: rgba(245,166,35,0.15); color: #f5a623; border: 1px solid rgba(245,166,35,0.3); }
+    .badge.approved { background: rgba(40,224,123,0.12); color: #28e07b; border: 1px solid rgba(40,224,123,0.3); }
+    .badge.rejected { background: rgba(255,77,77,0.12);  color: #ff4d4d; border: 1px solid rgba(255,77,77,0.3); }
+
+    .status-flash {
+      font-size: 0.81rem; padding: 9px 13px;
+      border-radius: 8px; margin-top: 12px; display: none;
     }
-    .vd-value.mono { font-family: 'Courier New', monospace; color: var(--amber); }
-    .vd-value.balance { color: var(--teal); font-family: var(--font-display); font-weight: 700; font-size: 1rem; }
-    .vd-value.tollid  { color: var(--teal); font-family: 'Courier New', monospace; font-size: 0.82rem; }
-    .vd-msg { font-size: 0.82rem; padding: 8px 12px; border-radius: 7px; margin-bottom: 10px; }
-    .vd-msg.error { background: rgba(255,77,77,0.1); color: #ff6b6b; border: 1px solid rgba(255,77,77,0.25); }
+    .status-flash.error   { background: rgba(255,77,77,0.1);  color: #ff6b6b; border: 1px solid rgba(255,77,77,0.25); display: block; }
+    .status-flash.info    { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.25); display: block; }
+    .status-flash.success { background: rgba(40,224,123,0.1); color: #28e07b; border: 1px solid rgba(40,224,123,0.25); display: block; }
+
   </style>
 </head>
 <body>
@@ -234,7 +333,7 @@
         <span class="status-dot"></span> System Online
       </div>
       <div style="display:flex;align-items:center;gap:12px;">
-        <span id="empNameBadge" style="background:rgba(0,212,170,0.12);border:1px solid rgba(0,212,170,0.3);color:var(--teal);font-family:var(--font-display);font-size:0.68rem;font-weight:700;letter-spacing:0.15em;padding:3px 10px;border-radius:20px;text-transform:uppercase;">Employee</span>
+        <span id="empNameBadge" style="background:rgba(0,212,170,0.12);border:1px solid rgba(0,212,170,0.3);color:var(--teal);font-family:var(--font-display);font-size:0.68rem;font-weight:700;letter-spacing:0.15em;padding:3px 10px;border-radius:20px;text-transform:uppercase;">User</span>
         <button onclick="sessionStorage.clear();window.location.href='index.html';" style="background:var(--surface2);border:1px solid var(--border-hi);color:var(--text-mid);font-family:var(--font-display);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;padding:7px 14px;border-radius:8px;cursor:pointer;text-transform:uppercase;">⏏ Logout</button>
       </div>
     </div>
@@ -242,7 +341,9 @@
 
   <main class="layout">
 
-    <!-- LEFT PANEL -->
+    <!-- ══════════════════════════════════════
+         LEFT PANEL — Scan + Recharge + Status
+    ══════════════════════════════════════ -->
     <section class="panel panel-input">
 
       <div class="tab-bar">
@@ -281,11 +382,11 @@
 
       <!-- MANUAL ENTRY TAB -->
       <div id="manualTab" style="display:none;">
-        <div class="panel-label">ENTER VEHICLE NUMBER</div>
+        <div class="panel-label">ENTER TOLL ID</div>
         <div class="manual-input-wrap">
-          <div class="manual-hint">Type the vehicle number as shown on the number plate</div>
+          <div class="manual-hint">Enter your 6-character Toll ID (3 letters + 3 digits)</div>
           <input type="text" id="manualVehicleInput" class="manual-input"
-            placeholder="e.g. MH12AB1234" maxlength="20"
+            placeholder="e.g. ABC123" maxlength="6"
             oninput="onManualInput()" onkeydown="onManualKeydown(event)"
             autocomplete="off" spellcheck="false" />
           <div class="manual-preview" id="manualPreview"></div>
@@ -301,69 +402,67 @@
       <div class="loading-bar" id="loadingBar"><div class="loading-fill" id="loadingFill"></div></div>
       <div class="loading-label" id="loadingLabel" style="display:none;">Processing…</div>
 
-      <!-- ── RECHARGE REQUEST SECTION ── -->
+      <!-- ══════════════════════════════
+           RECHARGE REQUEST
+      ══════════════════════════════ -->
       <div class="recharge-section">
         <div class="recharge-header">
-          <span class="recharge-title">💳 Recharge Request</span>
-          <button class="btn-check-status" onclick="checkRechargeStatus()">↻ Check Status</button>
+          <span class="recharge-title">💳 Request Recharge</span>
         </div>
         <div class="recharge-body">
-          <div class="rch-msg" id="rchMsg"></div>
+          <div id="rchFlash" class="rch-flash"></div>
           <div class="rch-row">
             <div class="rch-field">
-              <label for="rchVehicle">Vehicle Number</label>
-              <input type="text" id="rchVehicle" placeholder="e.g. MH12AB1234"
-                oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
-                maxlength="15" autocomplete="off" />
+              <label for="rchTollId">Toll ID</label>
+              <input type="text" id="rchTollId"
+                placeholder="e.g. ABC123"
+                oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)"
+                maxlength="6" autocomplete="off" />
             </div>
-            <div class="rch-field" style="max-width:140px;">
+            <div class="rch-field" style="max-width:130px;">
               <label for="rchAmount">Amount (₹)</label>
-              <input type="number" id="rchAmount" placeholder="e.g. 500" min="1" max="10000" />
+              <input type="number" id="rchAmount" placeholder="500" min="1" max="10000" />
             </div>
             <button class="btn-rch-submit" id="btnRchSubmit" onclick="submitRechargeRequest()">
-              Submit Request
+              Submit
             </button>
-          </div>
-
-          <!-- Status list -->
-          <div id="rchStatusArea" style="display:none;">
-            <div style="font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-mid);margin-bottom:10px;">Your Recent Requests</div>
-            <div id="rchStatusList" class="status-list"></div>
           </div>
         </div>
       </div>
 
-      <!-- VEHICLE DETAILS LOOKUP -->
-      <div class="vd-section">
-        <div class="vd-header">&#128269; Vehicle Details Lookup</div>
-        <div class="vd-body">
-          <div id="vdMsg" class="vd-msg" style="display:none;"></div>
-          <div class="vd-search-row">
-            <input type="text" id="vdInput" placeholder="Enter vehicle number (e.g. MH12AB1234)"
-              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"
-              maxlength="15" autocomplete="off"
-              onkeydown="if(event.key==='Enter') searchVehicleDetails()" />
-            <button class="btn-vd-search" onclick="searchVehicleDetails()">Search</button>
+      <!-- ══════════════════════════════
+           STATUS CHECK (by Toll ID)
+      ══════════════════════════════ -->
+      <div class="status-section">
+        <div class="status-header">
+          <span class="status-title">🔍 Check Request Status</span>
+        </div>
+        <div class="status-body">
+          <div class="status-input-row">
+            <input type="text" id="statusTollId"
+              placeholder="Enter Toll ID  (e.g. ABC123)"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)"
+              maxlength="6" autocomplete="off"
+              onkeydown="if(event.key==='Enter') checkStatus()" />
+            <button class="btn-check" onclick="checkStatus()">↻ Check</button>
           </div>
-          <div id="vdResult" class="vd-result">
-            <div class="vd-grid">
-              <div class="vd-item"><div class="vd-label">Vehicle Number</div><div class="vd-value mono" id="vd-num">&#8212;</div></div>
-              <div class="vd-item"><div class="vd-label">Owner Name</div><div class="vd-value" id="vd-name">&#8212;</div></div>
-              <div class="vd-item"><div class="vd-label">Vehicle Type</div><div class="vd-value" id="vd-type">&#8212;</div></div>
-              <div class="vd-item"><div class="vd-label">Wallet Balance</div><div class="vd-value balance" id="vd-balance">&#8212;</div></div>
-              <div class="vd-item" style="grid-column:1/-1"><div class="vd-label">Toll ID</div><div class="vd-value tollid" id="vd-tollid">&#8212;</div></div>
-              <div class="vd-item"><div class="vd-label">Phone</div><div class="vd-value" id="vd-phone">&#8212;</div></div>
-              <div class="vd-item"><div class="vd-label">Date of Birth</div><div class="vd-value" id="vd-dob">&#8212;</div></div>
-              <div class="vd-item" style="grid-column:1/-1"><div class="vd-label">Registered At</div><div class="vd-value" id="vd-reg">&#8212;</div></div>
-            </div>
+          <p class="status-hint">Shows all recharge requests from the last 24 hours for this Toll ID.</p>
+          <div id="statusFlash" class="status-flash"></div>
+          <div id="statusResult" class="status-result">
+            <div class="status-result-label" id="statusResultLabel">Requests found</div>
+            <div class="status-list" id="statusList"></div>
           </div>
         </div>
       </div>
 
     </section>
 
-    <!-- RIGHT PANEL -->
+    <!-- ══════════════════════════════════════
+         RIGHT PANEL — Result + Request History
+    ══════════════════════════════════════ -->
     <section class="panel panel-results">
+
+      <!-- Transaction Result -->
       <div class="panel-label">TRANSACTION RESULT</div>
 
       <div class="result-idle" id="resultIdle">
@@ -371,7 +470,7 @@
           <div class="hex-ring"><div class="hex-inner">⬡</div></div>
         </div>
         <p class="idle-text">Awaiting vehicle scan…</p>
-        <p class="idle-sub">Use the camera or enter a vehicle number manually.</p>
+        <p class="idle-sub">Use the camera or enter a Toll ID manually.</p>
       </div>
 
       <div class="result-data" id="resultData" style="display:none;">
@@ -380,6 +479,10 @@
           <span class="status-text" id="statusText">Transaction Successful</span>
         </div>
         <div class="info-grid">
+          <div class="info-card">
+            <div class="info-label">Toll ID</div>
+            <div class="info-value mono" id="resTollId">—</div>
+          </div>
           <div class="info-card">
             <div class="info-label">Vehicle Number</div>
             <div class="info-value mono" id="resVehicleNum">—</div>
@@ -396,7 +499,7 @@
             <div class="info-label">Toll Deducted</div>
             <div class="info-value accent" id="resToll">—</div>
           </div>
-          <div class="info-card span2">
+          <div class="info-card">
             <div class="info-label">Remaining Balance</div>
             <div class="info-value large" id="resBalance">—</div>
           </div>
@@ -408,6 +511,7 @@
           </div>
           <div class="receipt-row"><span>Receipt No.</span><span class="mono" id="rcptId">—</span></div>
           <div class="receipt-row"><span>Date &amp; Time</span><span id="rcptDate">—</span></div>
+          <div class="receipt-row"><span>Toll ID</span><span class="mono" id="rcptTollId">—</span></div>
           <div class="receipt-row"><span>Vehicle</span><span class="mono" id="rcptVehicle">—</span></div>
           <div class="receipt-row"><span>Owner</span><span id="rcptOwner">—</span></div>
           <div class="receipt-row"><span>Type</span><span id="rcptType">—</span></div>
@@ -423,6 +527,41 @@
           <span class="btn-icon">↺</span> Scan Another Vehicle
         </button>
       </div>
+
+      <!-- ══════════════════════════════
+           REQUEST HISTORY (full list)
+      ══════════════════════════════ -->
+      <div class="history-section" style="margin-top:24px;">
+        <div class="history-header">
+          <span class="history-title">📋 Request History</span>
+          <div class="history-search-wrap">
+            <input type="text" id="historySearch"
+              placeholder="Filter by Toll ID…"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)"
+              maxlength="6"
+              onkeydown="if(event.key==='Enter') filterHistory()"
+              autocomplete="off" />
+            <button class="btn-history-search" onclick="filterHistory()">Search</button>
+          </div>
+        </div>
+        <div class="history-body">
+          <table class="hist-table">
+            <thead>
+              <tr>
+                <th>Toll ID</th>
+                <th>Vehicle No.</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+              <tr><td colspan="5" class="hist-empty">Loading history…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </section>
   </main>
 
@@ -430,140 +569,242 @@
 
   <script src="script.js"></script>
   <script>
-    const name = sessionStorage.getItem('toll_name');
-    if (name) document.getElementById('empNameBadge').textContent = name;
+    /* ═══════════════════════════════════════════════════════
+       TOLLNET User Panel — v7
+       All operations keyed on Toll ID (6 chars: 3L+3N)
+    ═══════════════════════════════════════════════════════ */
 
-    const BACKEND_RCH = 'http://127.0.0.1:5001';
+    const API = 'http://127.0.0.1:5001';
 
-    // ── Auto-load recharge history on page load ──────────────────
-    (async function autoLoadRechargeHistory() {
-      // Try to get last used vehicle from sessionStorage
-      const savedVehicle = sessionStorage.getItem('last_rch_vehicle');
-      if (savedVehicle) {
-        document.getElementById('rchVehicle').value = savedVehicle;
-        await loadRechargeStatus(savedVehicle);
-      }
+    // Show logged-in name
+    const _name = sessionStorage.getItem('toll_name');
+    if (_name) document.getElementById('empNameBadge').textContent = _name;
+
+    // ── All recharge requests (loaded once, filtered client-side) ──
+    let allRequests = [];
+
+    /* ─── PAGE LOAD: fetch ALL recharge requests, populate history ─── */
+    (async function init() {
+      await loadAllRequests();
     })();
 
-    function showRchMsg(msg, type) {
-      const el = document.getElementById('rchMsg');
-      el.textContent = msg;
-      el.className = 'rch-msg ' + type + ' show';
-      setTimeout(() => { el.classList.remove('show'); }, 6000);
-    }
-
-    async function submitRechargeRequest() {
-      const vehicle = document.getElementById('rchVehicle').value.trim().toUpperCase();
-      const amount  = parseInt(document.getElementById('rchAmount').value, 10);
-
-      if (!vehicle) { showRchMsg('Please enter a vehicle number.', 'error'); return; }
-      if (!amount || amount <= 0) { showRchMsg('Please enter a valid amount.', 'error'); return; }
-      if (amount > 10000) { showRchMsg('Maximum recharge is Rs.10,000.', 'error'); return; }
-
-      const btn = document.getElementById('btnRchSubmit');
-      btn.disabled = true;
-      btn.textContent = 'Submitting…';
-
+    async function loadAllRequests() {
       try {
-        const res  = await fetch(BACKEND_RCH + '/recharge-request', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ vehicle_number: vehicle, amount }),
-        });
+        const res  = await fetch(`${API}/admin/recharge-requests`);
         const data = await res.json();
-
-        if (data.success) {
-          showRchMsg(`✓ Request submitted! ID: ${data.request_id} — Status: PENDING`, 'success');
-          sessionStorage.setItem('last_rch_vehicle', vehicle);
-          document.getElementById('rchAmount').value  = '';
-          // Auto-show status
-          await loadRechargeStatus(vehicle);
-        } else {
-          showRchMsg('✕ ' + (data.message || 'Request failed.'), 'error');
-        }
-      } catch (e) {
-        showRchMsg('✕ Cannot connect to server.', 'error');
-      }
-
-      btn.disabled = false;
-      btn.textContent = 'Submit Request';
-    }
-
-    async function checkRechargeStatus() {
-      const vehicle = document.getElementById('rchVehicle').value.trim().toUpperCase();
-      if (!vehicle) { showRchMsg('Enter a vehicle number to check status.', 'error'); return; }
-      await loadRechargeStatus(vehicle);
-    }
-
-    async function loadRechargeStatus(vehicle) {
-      const area = document.getElementById('rchStatusArea');
-      const list = document.getElementById('rchStatusList');
-      area.style.display = 'block';
-      list.innerHTML = '<div class="status-empty">Loading…</div>';
-
-      try {
-        const res  = await fetch(`${BACKEND_RCH}/recharge-status?vehicle_number=${encodeURIComponent(vehicle)}`);
-        const data = await res.json();
-        const reqs = data.requests || [];
-
-        if (!reqs.length) {
-          list.innerHTML = '<div class="status-empty">No recharge requests found for this vehicle.</div>';
-          return;
-        }
-
-        list.innerHTML = reqs.map(r => {
-          const badgeClass = r.status === 'PENDING' ? 'pending' : r.status === 'APPROVED' ? 'approved' : 'rejected';
-          const resolvedInfo = r.resolved_at
-            ? `<span class="si-date">${r.resolved_at}</span>`
-            : `<span class="si-date">${r.created_at}</span>`;
-          return `
-            <div class="status-item">
-              <span class="si-vehicle">${r.vehicle_number}</span>
-              <span class="si-amount">₹${r.amount}</span>
-              <span><span class="badge ${badgeClass}">${r.status}</span></span>
-              ${resolvedInfo}
-            </div>`;
-        }).join('');
-      } catch (e) {
-        list.innerHTML = '<div class="status-empty">Failed to fetch status.</div>';
+        allRequests = data.requests || [];
+        renderHistory(allRequests);
+      } catch(e) {
+        renderHistory([]);
       }
     }
-    // ── Vehicle Details Search ──────────────────────────────────
-    async function searchVehicleDetails() {
-      const vehicle = document.getElementById('vdInput').value.trim();
-      const msgEl   = document.getElementById('vdMsg');
-      const resultEl = document.getElementById('vdResult');
-      msgEl.style.display = 'none';
-      resultEl.style.display = 'none';
-      if (!vehicle) {
-        msgEl.textContent = 'Please enter a vehicle number.';
-        msgEl.className = 'vd-msg error';
-        msgEl.style.display = 'block';
+
+    /* ─── HISTORY TABLE ─── */
+    function renderHistory(list) {
+      const tbody = document.getElementById('historyBody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="hist-empty">No recharge requests found.</td></tr>';
         return;
       }
-      try {
-        const res  = await fetch(`${BACKEND_RCH}/vehicle-details?vehicle_number=${encodeURIComponent(vehicle)}`);
-        const data = await res.json();
-        if (!data.success) {
-          msgEl.textContent = data.message || 'Vehicle not found.';
-          msgEl.className = 'vd-msg error';
-          msgEl.style.display = 'block';
-          return;
-        }
-        document.getElementById('vd-num').textContent     = data.vehicle_number || '—';
-        document.getElementById('vd-name').textContent    = data.owner_name     || '—';
-        document.getElementById('vd-type').textContent    = data.vehicle_type   || '—';
-        document.getElementById('vd-balance').textContent = '₹' + (data.balance ?? '0');
-        document.getElementById('vd-tollid').textContent  = data.toll_id        || '—';
-        document.getElementById('vd-phone').textContent   = data.phone          || '—';
-        document.getElementById('vd-dob').textContent     = data.dob            || '—';
-        document.getElementById('vd-reg').textContent     = data.registered_at  || '—';
-        resultEl.style.display = 'block';
-      } catch (e) {
-        msgEl.textContent = 'Cannot connect to server.';
-        msgEl.className = 'vd-msg error';
-        msgEl.style.display = 'block';
+      tbody.innerHTML = list.map(r => {
+        const bc = r.status === 'PENDING' ? 'pending' : r.status === 'APPROVED' ? 'approved' : 'rejected';
+        return `<tr>
+          <td class="td-tollid">${r.toll_id || r.vehicle_number || '—'}</td>
+          <td style="color:var(--text-mid);font-size:0.78rem;">${r.vehicle_number || '—'}</td>
+          <td class="td-amount">₹${r.amount}</td>
+          <td><span class="badge ${bc}">${r.status}</span></td>
+          <td class="td-date">${r.created_at}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function filterHistory() {
+      const q = document.getElementById('historySearch').value.trim().toUpperCase();
+      if (!q) {
+        renderHistory(allRequests);
+        return;
       }
+      const filtered = allRequests.filter(r =>
+        (r.toll_id    || '').toUpperCase().includes(q) ||
+        (r.vehicle_number || '').toUpperCase().includes(q)
+      );
+      renderHistory(filtered);
+    }
+
+    /* ─── RECHARGE REQUEST SUBMISSION ─── */
+    async function submitRechargeRequest() {
+      const tollId = document.getElementById('rchTollId').value.trim().toUpperCase();
+      const amount = parseInt(document.getElementById('rchAmount').value, 10);
+      const flash  = document.getElementById('rchFlash');
+      flash.className = 'rch-flash';
+      flash.textContent = '';
+
+      if (!tollId || tollId.length !== 6) {
+        flash.textContent = 'Please enter a valid 6-character Toll ID.';
+        flash.className = 'rch-flash error'; return;
+      }
+      if (!amount || amount <= 0) {
+        flash.textContent = 'Please enter a valid amount.';
+        flash.className = 'rch-flash error'; return;
+      }
+      if (amount > 10000) {
+        flash.textContent = 'Maximum recharge amount is ₹10,000.';
+        flash.className = 'rch-flash error'; return;
+      }
+
+      const btn = document.getElementById('btnRchSubmit');
+      btn.disabled = true; btn.textContent = 'Submitting…';
+
+      try {
+        const res  = await fetch(`${API}/recharge-request`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ toll_id: tollId, amount }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          flash.textContent = `✓ Request submitted! ID: ${data.request_id}  Status: PENDING`;
+          flash.className = 'rch-flash success';
+          document.getElementById('rchAmount').value = '';
+          // Save toll id for status check
+          sessionStorage.setItem('last_toll_id', tollId);
+          // Refresh history
+          await loadAllRequests();
+        } else {
+          flash.textContent = '✕ ' + (data.message || 'Request failed.');
+          flash.className = 'rch-flash error';
+        }
+      } catch(e) {
+        flash.textContent = '✕ Cannot connect to server.';
+        flash.className = 'rch-flash error';
+      }
+      btn.disabled = false; btn.textContent = 'Submit';
+    }
+
+    /* ─── STATUS CHECK (last 24 h for a specific Toll ID) ─── */
+    async function checkStatus() {
+      const tollId = document.getElementById('statusTollId').value.trim().toUpperCase();
+      const flash  = document.getElementById('statusFlash');
+      const result = document.getElementById('statusResult');
+
+      flash.className = 'status-flash';
+      flash.textContent = '';
+      result.style.display = 'none';
+
+      if (!tollId || tollId.length !== 6) {
+        flash.textContent = 'Please enter a valid 6-character Toll ID (e.g. ABC123).';
+        flash.className = 'status-flash error'; return;
+      }
+
+      flash.textContent = 'Fetching…';
+      flash.className = 'status-flash info';
+
+      try {
+        const res  = await fetch(`${API}/recharge-status?toll_id=${encodeURIComponent(tollId)}&hours=24`);
+        const data = await res.json();
+        flash.className = 'status-flash'; // hide
+        flash.textContent = '';
+
+        if (!data.success) {
+          flash.textContent = data.message || 'Error fetching status.';
+          flash.className = 'status-flash error'; return;
+        }
+
+        const reqs = data.requests || [];
+        if (!reqs.length) {
+          flash.textContent = `No requests found for Toll ID "${tollId}" in the last 24 hours.`;
+          flash.className = 'status-flash info'; return;
+        }
+
+        // Render status cards
+        document.getElementById('statusResultLabel').textContent =
+          `${reqs.length} request${reqs.length>1?'s':''} found for ${tollId} (last 24 h)`;
+        document.getElementById('statusList').innerHTML = reqs.map(r => {
+          const bc = r.status === 'PENDING' ? 'pending' : r.status === 'APPROVED' ? 'approved' : 'rejected';
+          return `<div class="status-card">
+            <div class="sc-id">${r.id}</div>
+            <div class="sc-info">
+              <span class="sc-tollid">${r.toll_id || r.vehicle_number || '—'}</span>
+              <span class="sc-date">${r.created_at}</span>
+            </div>
+            <span class="sc-amount">₹${r.amount}</span>
+            <span class="badge ${bc}">${r.status}</span>
+          </div>`;
+        }).join('');
+
+        result.style.display = 'block';
+      } catch(e) {
+        flash.textContent = 'Cannot connect to server.';
+        flash.className = 'status-flash error';
+      }
+    }
+
+    // Pre-fill status toll ID from last used
+    (function prefillTollId() {
+      const saved = sessionStorage.getItem('last_toll_id');
+      if (saved) document.getElementById('statusTollId').value = saved;
+    })();
+
+    /* ─── TOLL DEDUCTION RESULT UI ─── */
+    function showResult(data) {
+      document.getElementById('resultIdle').style.display = 'none';
+      const rd = document.getElementById('resultData');
+      rd.style.display = 'block';
+
+      const banner = document.getElementById('statusBanner');
+      const icon   = document.getElementById('statusIcon');
+      const text   = document.getElementById('statusText');
+
+      if (data.status === 'success') {
+        banner.className = 'status-banner success';
+        icon.textContent = '✓'; text.textContent = 'Transaction Successful';
+        document.getElementById('resTollId').textContent      = data.toll_id || '—';
+        document.getElementById('resVehicleNum').textContent   = data.vehicle_number || '—';
+        document.getElementById('resOwner').textContent        = data.owner_name || '—';
+        document.getElementById('resVehicleType').textContent  = data.vehicle_type || '—';
+        document.getElementById('resToll').textContent         = `₹${data.toll_amount}`;
+        document.getElementById('resBalance').textContent      = `₹${data.remaining_balance}`;
+
+        const rcpt = document.getElementById('receiptBox');
+        rcpt.style.display = 'block';
+        document.getElementById('rcptId').textContent      = data.receipt_id;
+        document.getElementById('rcptDate').textContent    = data.date_time;
+        document.getElementById('rcptTollId').textContent  = data.toll_id || '—';
+        document.getElementById('rcptVehicle').textContent = data.vehicle_number;
+        document.getElementById('rcptOwner').textContent   = data.owner_name;
+        document.getElementById('rcptType').textContent    = data.vehicle_type;
+        document.getElementById('rcptToll').textContent    = `₹${data.toll_amount}`;
+        document.getElementById('rcptBalance').textContent = `₹${data.remaining_balance}`;
+
+        const pdfBtn = document.getElementById('btnDownloadPdf');
+        if (data.pdf_url) { pdfBtn.href = API + data.pdf_url; pdfBtn.style.display = 'flex'; }
+        document.getElementById('msgBox').style.display = 'none';
+      } else {
+        banner.className = 'status-banner ' + (data.status === 'not_found' ? 'warning' : 'danger');
+        icon.textContent = data.status === 'not_found' ? '?' : '✕';
+        text.textContent = data.status === 'not_found' ? 'Not Registered' :
+                           data.status === 'insufficient_balance' ? 'Insufficient Balance' : 'Error';
+        document.getElementById('resTollId').textContent     = data.toll_id || '—';
+        document.getElementById('resVehicleNum').textContent  = data.vehicle_number || '—';
+        document.getElementById('resOwner').textContent       = data.owner_name || '—';
+        document.getElementById('resVehicleType').textContent = data.vehicle_type || '—';
+        document.getElementById('resToll').textContent        = data.toll_amount ? `₹${data.toll_amount}` : '—';
+        document.getElementById('resBalance').textContent     = data.remaining_balance != null ? `₹${data.remaining_balance}` : '—';
+        document.getElementById('receiptBox').style.display = 'none';
+        const mb = document.getElementById('msgBox');
+        mb.style.display = 'block';
+        document.getElementById('msgText').textContent = data.message || '';
+      }
+    }
+
+    function resetUI() {
+      document.getElementById('resultIdle').style.display = 'flex';
+      document.getElementById('resultData').style.display = 'none';
+      document.getElementById('receiptBox').style.display = 'none';
+      document.getElementById('btnDownloadPdf').style.display = 'none';
+      document.getElementById('manualVehicleInput').value = '';
+      document.getElementById('manualPreview').textContent = '';
+      document.getElementById('btnManual').disabled = true;
     }
   </script>
 </body>

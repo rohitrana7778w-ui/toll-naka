@@ -99,8 +99,10 @@ function onManualInput() {
   const input   = document.getElementById("manualVehicleInput");
   const preview = document.getElementById("manualPreview");
   const btn     = document.getElementById("btnManual");
-  const cleaned = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const cleaned = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+  input.value = cleaned;
   preview.textContent = cleaned.length > 0 ? `→ ${cleaned}` : "";
+  // Enable when exactly 6 chars (valid toll ID) or a longer vehicle number
   btn.disabled = cleaned.length < 3;
 }
 
@@ -113,12 +115,13 @@ function onManualKeydown(event) {
 
 async function processManual() {
   const input = document.getElementById("manualVehicleInput");
-  const raw   = input.value.trim();
-  if (!raw) { showError("Please enter a vehicle number."); return; }
+  const raw   = input.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!raw) { showError("Please enter a Toll ID."); return; }
 
   const btn = document.getElementById("btnManual");
   setLoading(true);
   btn.disabled = true;
+  // Send as vehicle_number; backend auto-detects toll_id format
   const result = await sendToBackend(BACKEND_MANUAL, { vehicle_number: raw }, "json");
   setLoading(false);
   btn.disabled = false;
@@ -155,8 +158,14 @@ async function sendToBackend(url, payload, type) {
 // RENDER RESULT
 // ════════════════════════════════════════════════
 function renderResult(data) {
+  // Use page-level showResult if defined (employee.html defines its own)
+  if (typeof showResult === "function") { showResult(data); return; }
+
   resultIdle.style.display = "none";
   resultData.style.display = "block";
+
+  const tollIdEl = document.getElementById("resTollId");
+  if (tollIdEl) tollIdEl.textContent = data.toll_id || "—";
 
   document.getElementById("resVehicleNum").textContent  = data.vehicle_number  || "N/A";
   document.getElementById("resOwner").textContent       = data.owner_name      || "—";
@@ -182,6 +191,7 @@ function renderResult(data) {
 
   if (data.status === "success" && data.receipt_id) {
     receiptBox.style.display = "block";
+    const rcptTollIdEl = document.getElementById("rcptTollId"); if (rcptTollIdEl) rcptTollIdEl.textContent = data.toll_id || "—";
     document.getElementById("rcptId").textContent      = data.receipt_id;
     document.getElementById("rcptDate").textContent    = data.date_time;
     document.getElementById("rcptVehicle").textContent = data.vehicle_number;

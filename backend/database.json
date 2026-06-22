@@ -20,7 +20,7 @@
       "vehicle_number": "ABC123",
       "owner_name": "Rahul Sharma",
       "vehicle_type": "car",
-      "balance": 1600
+      "balance": 1500
     },
     {
       "vehicle_number": "DL4CAF7890",
@@ -63,9 +63,39 @@
       "owner_name": "Meena Patel",
       "vehicle_type": "bus",
       "balance": 450
+    },
+    {
+      "vehicle_number": "UK07DD7898",
+      "owner_name": "dev",
+      "vehicle_type": "bus",
+      "balance": 850,
+      "toll_id": "JCQ970",
+      "aadhaar": "783679349163",
+      "phone": "6387687327",
+      "dob": "2004-04-23",
+      "registered_at": "03 May 2026, 07:59 PM"
     }
   ],
   "transactions": [
+    {
+      "receipt_id": "TN-20260503-1677",
+      "date_time": "03 May 2026, 08:00 PM",
+      "toll_id": "JCQ970",
+      "vehicle_number": "UK07DD7898",
+      "owner_name": "dev",
+      "vehicle_type": "Bus",
+      "toll_amount": 150,
+      "remaining_balance": 850
+    },
+    {
+      "receipt_id": "TN-20260503-8CD4",
+      "date_time": "03 May 2026, 07:47 PM",
+      "vehicle_number": "ABC123",
+      "owner_name": "Rahul Sharma",
+      "vehicle_type": "Car",
+      "toll_amount": 100,
+      "remaining_balance": 1500
+    },
     {
       "receipt_id": "TN-20260502-D7B5",
       "date_time": "02 May 2026, 02:27 PM",
@@ -95,10 +125,20 @@
     }
   ],
   "admin_stats": {
-    "vehicle_count": 3,
-    "total_revenue": 300
+    "vehicle_count": 5,
+    "total_revenue": 550
   },
   "recharge_requests": [
+    {
+      "id": "RCH-7CAEB7BC",
+      "toll_id": "JCQ970",
+      "vehicle_number": "UK07DD7898",
+      "owner_name": "dev",
+      "amount": 1000,
+      "status": "APPROVED",
+      "created_at": "03 May 2026, 08:00 PM",
+      "resolved_at": "03 May 2026, 08:00 PM"
+    },
     {
       "id": "RCH-156636B3",
       "vehicle_number": "ABC123",
